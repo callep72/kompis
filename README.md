@@ -1,2 +1,2 @@
 # komponentregister
-A database with an inventory och my electronic components, searchable with AI
+A database with an inventory of my electronic components, searchable with AI
