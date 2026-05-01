@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
-from app.services import component_service, location_service, stock_service, category_service
+from app.services import component_service, location_service, stock_service, category_service, file_service
 from app.schemas.schemas import (
     ComponentCreate, ComponentUpdate,
     DrawerCreate, CompartmentCreate, CompartmentUpdate,
@@ -116,6 +116,22 @@ async def update_component_post(request: Request, component_id: int, db: Session
 def delete_component_post(component_id: int, db: Session = Depends(get_db)):
     component_service.delete(db, component_id)
     return RedirectResponse("/", status_code=303)
+
+
+@router.post("/components/{component_id}/files")
+async def upload_file_post(request: Request, component_id: int, db: Session = Depends(get_db)):
+    form = await request.form()
+    uploaded = form.get("file")
+    file_type = form.get("file_type", "image")
+    if uploaded:
+        await file_service.save_upload(db, component_id, uploaded, file_type)
+    return RedirectResponse(f"/components/{component_id}", status_code=303)
+
+
+@router.post("/components/{component_id}/files/{file_id}/delete")
+def delete_file_post(component_id: int, file_id: int, db: Session = Depends(get_db)):
+    file_service.delete_file(db, file_id)
+    return RedirectResponse(f"/components/{component_id}", status_code=303)
 
 
 # --- Locations ---

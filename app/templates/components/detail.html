@@ -56,6 +56,89 @@
             {% endfor %}
         </table>
         {% endif %}
+
+        <!-- Filer -->
+        <h5 class="mt-4">Filer</h5>
+        {% set images = component.files | selectattr("file_type", "eq", "image") | list %}
+        {% set datasheets = component.files | selectattr("file_type", "eq", "datasheet") | list %}
+        {% set other_files = component.files | rejectattr("file_type", "in", ["image", "datasheet"]) | list %}
+
+        {% if images %}
+        <div class="row g-2 mb-3">
+            {% for f in images %}
+            <div class="col-auto">
+                <div class="position-relative">
+                    <img src="/files/{{ f.filepath }}" class="rounded border" style="max-height:120px; max-width:160px; object-fit:contain;">
+                    {% if f.is_primary %}<span class="badge bg-primary position-absolute top-0 start-0 m-1">Primär</span>{% endif %}
+                    <form method="post" action="/components/{{ component.id }}/files/{{ f.id }}/delete" class="position-absolute top-0 end-0 m-1">
+                        <button type="submit" class="btn btn-danger btn-sm py-0 px-1" onclick="return confirm('Ta bort bilden?')">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if datasheets %}
+        <ul class="list-group list-group-flush mb-3">
+            {% for f in datasheets %}
+            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <a href="/files/{{ f.filepath }}" target="_blank" class="text-decoration-none">
+                    <i class="bi bi-file-earmark-pdf text-danger me-1"></i>{{ f.filename }}
+                </a>
+                <form method="post" action="/components/{{ component.id }}/files/{{ f.id }}/delete">
+                    <button type="submit" class="btn btn-link btn-sm text-danger p-0" onclick="return confirm('Ta bort databladet?')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if other_files %}
+        <ul class="list-group list-group-flush mb-3">
+            {% for f in other_files %}
+            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <a href="/files/{{ f.filepath }}" target="_blank" class="text-decoration-none">
+                    <i class="bi bi-file-earmark me-1"></i>{{ f.filename }}
+                </a>
+                <form method="post" action="/components/{{ component.id }}/files/{{ f.id }}/delete">
+                    <button type="submit" class="btn btn-link btn-sm text-danger p-0" onclick="return confirm('Ta bort filen?')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if not component.files %}
+        <p class="text-muted small">Inga filer uppladdade.</p>
+        {% endif %}
+
+        <form method="post" action="/components/{{ component.id }}/files" enctype="multipart/form-data" class="mt-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <select name="file_type" class="form-select form-select-sm">
+                        <option value="image">Bild</option>
+                        <option value="datasheet">Datablad (PDF)</option>
+                        <option value="schematic">Kopplingsschema</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="file" name="file" class="form-control form-control-sm"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-upload"></i> Ladda upp
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <div class="col-lg-4">
