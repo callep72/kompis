@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ drawer.label }} – KOMPIS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/locations">Platser</a></li>
+        <li class="breadcrumb-item active">{{ drawer.label }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 font-monospace">{{ drawer.label }}</h1>
+        {% if drawer.description %}<p class="text-muted mb-0">{{ drawer.description }}</p>{% endif %}
+    </div>
+    <a href="/locations/compartments/new?drawer_id={{ drawer.id }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nytt fack
+    </a>
+</div>
+
+{% if drawer.compartments %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Fack</th>
+                <th>Beskrivning</th>
+                <th>Status</th>
+                <th class="text-end">Åtgärder</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comp in drawer.compartments %}
+            <tr class="{% if not comp.active %}text-muted{% endif %}">
+                <td class="font-monospace fw-semibold">{{ comp.label }}</td>
+                <td>{{ comp.description or '–' }}</td>
+                <td>
+                    {% if comp.active %}
+                    <span class="badge bg-success">Aktiv</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Inaktiv</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="/locations/compartments/{{ comp.id }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted">Inga fack i den här lådan ännu.</p>
+{% endif %}
+{% endblock %}

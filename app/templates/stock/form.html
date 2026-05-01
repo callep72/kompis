@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{% if stock %}Redigera lager{% else %}Nytt lager{% endif %} – KOMPIS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h1 class="h3 mb-4">{% if stock %}Uppdatera lager{% else %}Registrera lager{% endif %}</h1>
+        <form method="post" action="{% if stock %}/stock/{{ stock.id }}/edit{% else %}/stock/new{% endif %}">
+            {% if not stock %}
+            <div class="mb-3">
+                <label class="form-label">Komponent <span class="text-danger">*</span></label>
+                <select name="component_id" class="form-select" required>
+                    <option value="">Välj komponent…</option>
+                    {% for c in components %}
+                    <option value="{{ c.id }}" {% if selected_component_id == c.id %}selected{% endif %}>
+                        {{ c.name }}{% if c.part_number %} ({{ c.part_number }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Fack <span class="text-danger">*</span></label>
+                <select name="compartment_id" class="form-select" required>
+                    <option value="">Välj fack…</option>
+                    {% for comp in compartments %}
+                    <option value="{{ comp.id }}">{{ comp.label }}{% if comp.description %} – {{ comp.description }}{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Antal <span class="text-danger">*</span></label>
+                    <input type="number" name="quantity" class="form-control" required min="0" value="{{ stock.quantity if stock else 0 }}">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Miniminivå</label>
+                    <input type="number" name="minimum_qty" class="form-control" min="0" value="{{ stock.minimum_qty if stock else 0 }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Enhet</label>
+                <input type="text" name="unit" class="form-control" value="{{ stock.unit if stock else 'st' }}">
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Anteckningar</label>
+                <textarea name="notes" class="form-control" rows="2">{{ stock.notes or '' if stock else '' }}</textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Spara</button>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">Avbryt</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

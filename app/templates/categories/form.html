@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{% if category %}Redigera kategori{% else %}Ny kategori{% endif %} – KOMPIS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/categories">Kategorier</a></li>
+        <li class="breadcrumb-item active">{% if category %}Redigera{% else %}Ny kategori{% endif %}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-6">
+        <h1 class="h3 mb-4">{% if category %}Redigera kategori{% else %}Ny kategori{% endif %}</h1>
+        <form method="post" action="{% if category %}/categories/{{ category.id }}/edit{% else %}/categories/new{% endif %}">
+            <div class="mb-3">
+                <label class="form-label">Namn <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" required value="{{ category.name if category else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Slug <span class="text-danger">*</span></label>
+                <input type="text" name="slug" class="form-control font-monospace" required value="{{ category.slug if category else '' }}" placeholder="transistors/npn">
+                <div class="form-text">Unikt ID, t.ex. "transistors" eller "transistors/npn"</div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Förälderkategori</label>
+                <select name="parent_id" class="form-select">
+                    <option value="">Ingen (toppnivå)</option>
+                    {% for cat in categories %}
+                    {% if not category or cat.id != category.id %}
+                    <option value="{{ cat.id }}" {% if category and category.parent_id == cat.id %}selected{% endif %}>
+                        {{ cat.name }} ({{ cat.slug }})
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    {% if category %}Spara{% else %}Skapa{% endif %}
+                </button>
+                <a href="/categories" class="btn btn-outline-secondary">Avbryt</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

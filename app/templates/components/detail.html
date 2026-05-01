@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ component.name }} – KOMPIS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Komponenter</a></li>
+        <li class="breadcrumb-item active">{{ component.name }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-start justify-content-between mb-3">
+            <div>
+                <h1 class="h3 mb-1">{{ component.name }}</h1>
+                {% if component.manufacturer or component.part_number %}
+                <p class="text-muted mb-0">
+                    {% if component.manufacturer %}{{ component.manufacturer }}{% endif %}
+                    {% if component.part_number %} · <code>{{ component.part_number }}</code>{% endif %}
+                </p>
+                {% endif %}
+            </div>
+            <a href="/components/{{ component.id }}/edit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil"></i> Redigera
+            </a>
+        </div>
+
+        {% if component.description %}
+        <p class="lead">{{ component.description }}</p>
+        {% endif %}
+
+        {% if component.category %}
+        <p>
+            <i class="bi bi-tag text-muted"></i>
+            <span class="badge bg-light text-dark border">{{ component.category.name }}</span>
+        </p>
+        {% endif %}
+
+        {% if component.tags %}
+        <div class="mb-3">
+            {% for tag in component.tags %}
+            <span class="badge bg-info text-dark me-1">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if component.specs %}
+        <h5 class="mt-4">Specifikationer</h5>
+        <table class="table table-sm table-bordered w-auto">
+            {% for key, value in component.specs.items() %}
+            <tr>
+                <th class="text-muted fw-normal pe-4">{{ key }}</th>
+                <td><code>{{ value }}</code></td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-box"></i> Lagerplatser</span>
+                <a href="/stock/new?component_id={{ component.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus"></i>
+                </a>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% if component.stock %}
+                    {% for s in component.stock %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold">{{ s.compartment.label if s.compartment else '–' }}</span>
+                            {% if s.notes %}<br><small class="text-muted">{{ s.notes }}</small>{% endif %}
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if s.quantity <= s.minimum_qty and s.minimum_qty > 0 %}bg-danger{% elif s.quantity > 0 %}bg-success{% else %}bg-secondary{% endif %} fs-6">
+                                {{ s.quantity }} {{ s.unit }}
+                            </span>
+                            <br>
+                            <a href="/stock/{{ s.id }}/edit" class="btn btn-link btn-sm p-0 mt-1">ändra</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                <li class="list-group-item text-muted text-center py-3">
+                    Inget lager registrerat
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

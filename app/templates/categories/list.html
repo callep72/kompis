@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Kategorier – KOMPIS{% endblock %}
+
+{% block content %}
+<div class="row mb-3 align-items-center">
+    <div class="col">
+        <h1 class="h3 mb-0">Kategorier</h1>
+    </div>
+    <div class="col-auto">
+        <a href="/categories/new" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Ny kategori
+        </a>
+    </div>
+</div>
+
+{% macro render_categories(cats, level=0) %}
+    {% for cat in cats %}
+    <tr>
+        <td style="padding-left: {{ level * 2 + 1 }}rem">
+            {% if level > 0 %}<span class="text-muted me-1">└</span>{% endif %}
+            <a href="/categories/{{ cat.id }}/edit" class="text-decoration-none fw-semibold">{{ cat.name }}</a>
+        </td>
+        <td class="text-muted font-monospace small">{{ cat.slug }}</td>
+        <td class="text-muted">{{ cat.parent.name if cat.parent else '–' }}</td>
+    </tr>
+    {% if cat.children %}
+        {{ render_categories(cat.children, level + 1) }}
+    {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{% if categories %}
+<div class="table-responsive">
+    <table class="table">
+        <thead class="table-light">
+            <tr>
+                <th>Namn</th>
+                <th>Slug</th>
+                <th>Förälder</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ render_categories(root_categories) }}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-tags display-4"></i>
+    <p class="mt-3">Inga kategorier skapade ännu.</p>
+    <a href="/categories/new" class="btn btn-primary mt-2">Skapa första kategorin</a>
+</div>
+{% endif %}
+{% endblock %}

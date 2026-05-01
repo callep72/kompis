@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{% if component %}Redigera {{ component.name }}{% else %}Ny komponent{% endif %} – KOMPIS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Komponenter</a></li>
+        {% if component %}
+        <li class="breadcrumb-item"><a href="/components/{{ component.id }}">{{ component.name }}</a></li>
+        <li class="breadcrumb-item active">Redigera</li>
+        {% else %}
+        <li class="breadcrumb-item active">Ny komponent</li>
+        {% endif %}
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="h3 mb-4">{% if component %}Redigera komponent{% else %}Ny komponent{% endif %}</h1>
+
+        <form method="post" action="{% if component %}/components/{{ component.id }}/edit{% else %}/components/new{% endif %}">
+            <div class="mb-3">
+                <label class="form-label">Namn <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" required value="{{ component.name if component else '' }}">
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tillverkare</label>
+                    <input type="text" name="manufacturer" class="form-control" value="{{ component.manufacturer or '' if component else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Artikelnummer</label>
+                    <input type="text" name="part_number" class="form-control" value="{{ component.part_number or '' if component else '' }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Kategori</label>
+                <select name="category_id" class="form-select">
+                    <option value="">Ingen kategori</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if component and component.category_id == cat.id %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Beskrivning</label>
+                <textarea name="description" class="form-control" rows="3">{{ component.description or '' if component else '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Taggar <small class="text-muted">(kommaseparerade)</small></label>
+                <input type="text" name="tags" class="form-control" value="{{ (component.tags or [])|join(', ') if component else '' }}">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Specifikationer <small class="text-muted">(ett per rad: nyckel=värde)</small></label>
+                <textarea name="specs" class="form-control font-monospace" rows="5" placeholder="resistance=10k&#10;tolerance=1%&#10;package=0805">{% if component and component.specs %}{% for k, v in component.specs.items() %}{{ k }}={{ v }}
+{% endfor %}{% endif %}</textarea>
+            </div>
+
+            {% if component %}
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" name="active" id="active" value="true" {% if component.active %}checked{% endif %}>
+                <label class="form-check-label" for="active">Aktiv</label>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    {% if component %}Spara ändringar{% else %}Skapa komponent{% endif %}
+                </button>
+                <a href="{% if component %}/components/{{ component.id }}{% else %}/{% endif %}" class="btn btn-outline-secondary">Avbryt</a>
+
+                {% if component %}
+                <form method="post" action="/components/{{ component.id }}/delete" class="ms-auto">
+                    <button type="submit" class="btn btn-outline-danger"
+                        onclick="return confirm('Ta bort {{ component.name }}?')">
+                        <i class="bi bi-trash"></i> Ta bort
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
