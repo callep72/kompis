@@ -1,4 +1,4 @@
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session, joinedload
 from app.models.models import Component, Stock
 from app.schemas.schemas import ComponentCreate, ComponentUpdate
@@ -16,8 +16,12 @@ def get_all(
 
     if q:
         query = query.filter(
-            Component.search_vector.op("@@")(
-                __import__("sqlalchemy").func.websearch_to_tsquery("swedish", q)
+            or_(
+                Component.search_vector.op("@@")(
+                    func.websearch_to_tsquery("swedish", q)
+                ),
+                Component.name.ilike(f"%{q}%"),
+                Component.part_number.ilike(f"%{q}%"),
             )
         )
 

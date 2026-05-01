@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.schemas import Component, ComponentCreate, ComponentUpdate, ComponentSummary
@@ -10,13 +10,14 @@ router = APIRouter(prefix="/api/components", tags=["components"])
 @router.get("", response_model=list[ComponentSummary])
 def list_components(
     q: str | None = None,
-    category_id: int | None = None,
+    category_id: str | None = Query(default=None),
     in_stock: bool | None = None,
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
 ):
-    return component_service.get_all(db, q=q, category_id=category_id, in_stock=in_stock, skip=skip, limit=limit)
+    cat_id = int(category_id) if category_id else None
+    return component_service.get_all(db, q=q, category_id=cat_id, in_stock=in_stock, skip=skip, limit=limit)
 
 
 @router.get("/{component_id}", response_model=Component)

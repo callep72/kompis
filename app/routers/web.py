@@ -22,20 +22,21 @@ templates = Jinja2Templates(directory="app/templates")
 def index(
     request: Request,
     q: Optional[str] = None,
-    category_id: Optional[int] = None,
+    category_id: Optional[str] = None,
     in_stock: Optional[str] = None,
     skip: int = 0,
     db: Session = Depends(get_db),
 ):
+    cat_id = int(category_id) if category_id else None
     components = component_service.get_all(
-        db, q=q, category_id=category_id,
+        db, q=q, category_id=cat_id,
         in_stock=in_stock == "true",
         skip=skip, limit=50,
     )
     categories = category_service.get_all(db)
     return templates.TemplateResponse("components/list.html", {
         "request": request, "components": components, "categories": categories,
-        "q": q, "category_id": category_id, "in_stock": in_stock == "true",
+        "q": q, "category_id": cat_id, "in_stock": in_stock == "true",
         "active_page": "components",
     })
 
