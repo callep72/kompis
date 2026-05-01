@@ -52,15 +52,6 @@ kompis.duplo.cc
 
 ---
 
-## Kom igång
-
-```bash
-git clone git@github.com:callep72/kompis.git
-cd kompis
-cp .env.example .env
-docker compose up -d
-```
-
 API-dokumentation finns tillgänglig på `http://localhost:8000/api/docs` efter uppstart.
 
 ---
