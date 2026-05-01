@@ -48,7 +48,6 @@
                 <th>Namn</th>
                 <th>Låda</th>
                 <th>Fack</th>
-                <th>Art.nr</th>
                 <th>Kategori</th>
                 <th>Taggar</th>
                 <th class="text-end">Åtgärder</th>
@@ -71,7 +70,6 @@
                     <span class="text-muted">{{ s.compartment.label if s.compartment else '–' }}</span>{% if not loop.last %}, {% endif %}
                     {% else %}–{% endfor %}
                 </td>
-                <td><code>{{ comp.part_number or '–' }}</code></td>
                 <td>
                     {% if comp.category %}
                     <span class="badge bg-light text-dark border">{{ comp.category.name }}</span>
