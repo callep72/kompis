@@ -1,4 +1,4 @@
-from sqlalchemy import or_, func
+from sqlalchemy import cast, or_, func, Text
 from sqlalchemy.orm import Session, joinedload
 from app.models.models import Component, Compartment, Stock
 from app.schemas.schemas import ComponentCreate, ComponentUpdate
@@ -22,6 +22,8 @@ def get_all(
                 ),
                 Component.name.ilike(f"%{q}%"),
                 Component.part_number.ilike(f"%{q}%"),
+                func.array_to_string(Component.tags, " ").ilike(f"%{q}%"),
+                cast(Component.specs, Text).ilike(f"%{q}%"),
             )
         )
 
