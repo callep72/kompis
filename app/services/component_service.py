@@ -1,0 +1,82 @@
+from sqlalchemy import or_
+from sqlalchemy.orm import Session, joinedload
+from app.models.models import Component, Stock
+from app.schemas.schemas import ComponentCreate, ComponentUpdate
+
+
+def get_all(
+    db: Session,
+    q: str | None = None,
+    category_id: int | None = None,
+    in_stock: bool | None = None,
+    skip: int = 0,
+    limit: int = 50,
+) -> list[Component]:
+    query = db.query(Component).filter(Component.active == True)
+
+    if q:
+        query = query.filter(
+            Component.search_vector.op("@@")(
+                __import__("sqlalchemy").func.websearch_to_tsquery("swedish", q)
+            )
+        )
+
+    if category_id is not None:
+        query = query.filter(Component.category_id == category_id)
+
+    if in_stock:
+        query = query.filter(
+            Component.stock.any(Stock.quantity > 0)
+        )
+
+    return (
+        query.options(
+            joinedload(Component.category),
+            joinedload(Component.stock).joinedload(Stock.compartment),
+        )
+        .order_by(Component.name)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_by_id(db: Session, component_id: int) -> Component | None:
+    return (
+        db.query(Component)
+        .options(
+            joinedload(Component.category),
+            joinedload(Component.stock).joinedload(Stock.compartment),
+            joinedload(Component.files),
+        )
+        .filter(Component.id == component_id, Component.active == True)
+        .first()
+    )
+
+
+def create(db: Session, data: ComponentCreate) -> Component:
+    component = Component(**data.model_dump())
+    db.add(component)
+    db.commit()
+    db.refresh(component)
+    return component
+
+
+def update(db: Session, component_id: int, data: ComponentUpdate) -> Component | None:
+    component = db.query(Component).filter(Component.id == component_id).first()
+    if not component:
+        return None
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(component, field, value)
+    db.commit()
+    db.refresh(component)
+    return component
+
+
+def delete(db: Session, component_id: int) -> bool:
+    component = db.query(Component).filter(Component.id == component_id).first()
+    if not component:
+        return False
+    component.active = False
+    db.commit()
+    return True
