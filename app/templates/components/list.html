@@ -46,7 +46,7 @@
         <thead class="table-light">
             <tr>
                 <th>Namn</th>
-                <th>Tillverkare</th>
+                <th>Fack</th>
                 <th>Art.nr</th>
                 <th>Kategori</th>
                 <th>Taggar</th>
@@ -60,7 +60,11 @@
                     <a href="/components/{{ comp.id }}" class="fw-semibold text-decoration-none">{{ comp.name }}</a>
                     {% if not comp.active %}<span class="badge bg-secondary ms-1">Inaktiv</span>{% endif %}
                 </td>
-                <td class="text-muted">{{ comp.manufacturer or '–' }}</td>
+                <td class="font-monospace">
+                    {% for s in comp.stock %}
+                    <span class="text-muted">{{ s.compartment.label if s.compartment else '–' }}</span>{% if not loop.last %}, {% endif %}
+                    {% else %}–{% endfor %}
+                </td>
                 <td><code>{{ comp.part_number or '–' }}</code></td>
                 <td>
                     {% if comp.category %}
