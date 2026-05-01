@@ -1,6 +1,6 @@
 from sqlalchemy import or_, func
 from sqlalchemy.orm import Session, joinedload
-from app.models.models import Component, Stock
+from app.models.models import Component, Compartment, Stock
 from app.schemas.schemas import ComponentCreate, ComponentUpdate
 
 
@@ -36,7 +36,9 @@ def get_all(
     return (
         query.options(
             joinedload(Component.category),
-            joinedload(Component.stock).joinedload(Stock.compartment),
+            joinedload(Component.stock)
+            .joinedload(Stock.compartment)
+            .joinedload(Compartment.drawer),
         )
         .order_by(Component.name)
         .offset(skip)

@@ -46,6 +46,7 @@
         <thead class="table-light">
             <tr>
                 <th>Namn</th>
+                <th>Låda</th>
                 <th>Fack</th>
                 <th>Art.nr</th>
                 <th>Kategori</th>
@@ -59,6 +60,11 @@
                 <td>
                     <a href="/components/{{ comp.id }}" class="fw-semibold text-decoration-none">{{ comp.name }}</a>
                     {% if not comp.active %}<span class="badge bg-secondary ms-1">Inaktiv</span>{% endif %}
+                </td>
+                <td class="font-monospace">
+                    {% for s in comp.stock %}
+                    <span class="text-muted">{{ s.compartment.drawer.label if s.compartment and s.compartment.drawer else '–' }}</span>{% if not loop.last %}, {% endif %}
+                    {% else %}–{% endfor %}
                 </td>
                 <td class="font-monospace">
                     {% for s in comp.stock %}
