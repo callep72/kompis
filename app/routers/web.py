@@ -88,7 +88,26 @@ def component_detail(request: Request, component_id: int, db: Session = Depends(
         return RedirectResponse("/admin", status_code=303)
     return templates.TemplateResponse("components/detail.html", {
         "request": request, "component": comp, "active_page": "components",
+        "transistor_symbol": _transistor_symbol(comp),
     })
+
+
+def _transistor_symbol(comp) -> str | None:
+    cat_slug = (comp.category.slug if comp.category else "").lower()
+    if "transistor" not in cat_slug:
+        return None
+    tags = [t.lower() for t in (comp.tags or [])]
+    specs = comp.specs or {}
+    if "darlington" in tags:
+        return "darlington"
+    if "mosfet" in tags or "fet" in tags or specs.get("gate"):
+        return "mosfet"
+    t = specs.get("type", "").upper()
+    if t == "NPN":
+        return "npn"
+    if t == "PNP":
+        return "pnp"
+    return None
 
 
 @router.get("/components/{component_id}/edit", response_class=HTMLResponse)

@@ -47,14 +47,21 @@
 
         {% if component.specs %}
         <h5 class="mt-4">Specifikationer</h5>
-        <table class="table table-sm table-bordered w-auto">
-            {% for key, value in component.specs.items() %}
-            <tr>
-                <th class="text-muted fw-normal pe-4">{{ key }}</th>
-                <td><code>{{ value }}</code></td>
-            </tr>
-            {% endfor %}
-        </table>
+        <div class="d-flex align-items-start gap-4">
+            <table class="table table-sm table-bordered w-auto mb-0">
+                {% for key, value in component.specs.items() %}
+                <tr>
+                    <th class="text-muted fw-normal pe-4">{{ key }}</th>
+                    <td><code>{{ value }}</code></td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% if transistor_symbol %}
+            <div style="width:120px;flex-shrink:0;opacity:0.85">
+                {% include "symbols/" + transistor_symbol + ".svg" %}
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
 
         <!-- Filer -->
