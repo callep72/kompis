@@ -109,7 +109,7 @@
     cursor: pointer;
   }
   .answer-table tr.row-linked:hover td {
-    color: var(--bs-primary);
+    color: #fd7e14;
   }
   @keyframes card-flash {
     0%   { box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.5); border-color: var(--bs-primary); }
@@ -346,8 +346,7 @@ function renderCard(c) {
   const stockHtml = (c.stock || []).length
     ? (c.stock || []).map(s => {
         const loc = [s.drawer, s.compartment].filter(Boolean).join(' › ');
-        const cls = s.quantity === 0 ? 'bg-danger' : s.quantity <= s.minimum_qty && s.minimum_qty > 0 ? 'bg-warning text-dark' : 'bg-success';
-        return `<span class="badge ${cls} bg-opacity-75 me-1"><i class="bi bi-box me-1"></i>${loc ? loc + ': ' : ''}${s.quantity} ${s.unit}</span>`;
+        return `<span class="badge bg-success bg-opacity-75 me-1" style="font-size:1rem;padding:0.4em 0.7em"><i class="bi bi-box me-1"></i>${loc || '–'}</span>`;
       }).join('')
     : `<span class="text-secondary small">Inget lager registrerat</span>`;
 
