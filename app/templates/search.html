@@ -163,6 +163,29 @@
 <div id="error-msg" class="d-none alert alert-danger mt-3" style="max-width:860px; margin:0 auto;"></div>
 
 <script>
+// Preload transistor symbols
+const _symbols = {};
+(async () => {
+  for (const t of ['npn', 'pnp', 'darlington', 'mosfet']) {
+    try {
+      const r = await fetch(`/static/symbols/${t}.svg`);
+      if (r.ok) _symbols[t] = await r.text();
+    } catch {}
+  }
+})();
+
+function _transistorSymbol(c) {
+  const cat = ((c.category || {}).slug || '').toLowerCase();
+  if (!cat.includes('transistor')) return null;
+  const tags = (c.tags || []).map(t => t.toLowerCase());
+  const type = ((c.specs || {}).type || '').toUpperCase();
+  if (tags.includes('darlington')) return 'darlington';
+  if (tags.some(t => t.includes('mosfet') || t === 'fet') || (c.specs || {}).gate) return 'mosfet';
+  if (type === 'NPN') return 'npn';
+  if (type === 'PNP') return 'pnp';
+  return null;
+}
+
 const form = document.getElementById('ask-form');
 const input = document.getElementById('ask-input');
 const btn = document.getElementById('search-btn');
@@ -335,14 +358,22 @@ function renderCard(c) {
     ? `<span class="badge" style="background:var(--accent-glow,rgba(253,126,20,.18));color:var(--accent,#fd7e14);border:1px solid rgba(253,126,20,.35)">${c.category.name}</span>`
     : '';
 
+  const symType = _transistorSymbol(c);
+  const symHtml = symType && _symbols[symType]
+    ? `<div class="transistor-symbol ms-3" style="width:90px;height:90px;flex-shrink:0;opacity:0.8">${_symbols[symType]}</div>`
+    : '';
+
   const specs = Object.entries(c.specs || {});
   const specsHtml = specs.length
-    ? `<div class="specs-grid mt-2 mb-1">
-        ${specs.map(([k,v]) =>
-          `<span class="specs-key">${k}</span><span class="specs-val">${v}</span>`
-        ).join('')}
+    ? `<div class="d-flex align-items-start">
+        <div class="specs-grid mt-2 mb-1 flex-grow-1">
+          ${specs.map(([k,v]) =>
+            `<span class="specs-key">${k}</span><span class="specs-val">${v}</span>`
+          ).join('')}
+        </div>
+        ${symHtml}
        </div>`
-    : '';
+    : symHtml ? `<div class="mt-2">${symHtml}</div>` : '';
 
   const stockHtml = (c.stock || []).length
     ? (c.stock || []).map(s => {
