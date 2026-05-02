@@ -136,9 +136,6 @@ _SKIP = re.compile(
 )
 
 def _logic_svg(comp) -> tuple[str | None, str | None]:
-    cat_slug = (comp.category.slug if comp.category else "").lower()
-    if "digital" not in cat_slug and "logik" not in cat_slug:
-        return None, None
     text = " ".join([comp.name] + list(comp.tags or [])).lower()
     if _SKIP.search(text):
         return None, None
@@ -147,7 +144,7 @@ def _logic_svg(comp) -> tuple[str | None, str | None]:
         gate = "nand"
     elif re.search(r"\b(nor|xor|xnor)\b", text):
         return None, None
-    elif re.search(r"\band\b", text):
+    elif re.search(r"\band gate\b|\binput and\b|\band-gate\b", text):
         gate = "and"
     elif re.search(r"\binverter\b", text):
         gate = "inverter"

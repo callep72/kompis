@@ -196,15 +196,14 @@ function _componentSymbol(c) {
     return null;
   }
 
-  // Logic gates
-  if (!cat.includes('digital') && !cat.includes('logik')) return null;
+  // Logic gates (no category restriction – rely on keywords + skip list)
   const text = [c.name, ...(c.tags || [])].join(' ').toLowerCase();
   if (_SKIP.test(text)) return null;
 
   let gate = null;
-  if (/\bnand\b/.test(text))                    gate = 'nand';
-  else if (/\b(nor|xor|xnor)\b/.test(text))     return null;
-  else if (/\band\b/.test(text))                 gate = 'and';
+  if (/\bnand\b/.test(text))                                              gate = 'nand';
+  else if (/\b(nor|xor|xnor)\b/.test(text))                              return null;
+  else if (/\band gate\b|\binput and\b|\band-gate\b/.test(text))          gate = 'and';
   else if (/\binverter\b/.test(text))            gate = 'inverter';
   else if (/\bbuffer\b/.test(text))              gate = 'buffer';
   if (!gate) return null;
