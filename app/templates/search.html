@@ -165,23 +165,21 @@
 <script>
 // Preload all component symbols
 const _symbols = {};
-(async () => {
-  const names = [
-    'npn','pnp','darlington','mosfet',
-    'logic_and_2in','logic_and_3in','logic_and_4in',
-    'logic_nand_2in','logic_nand_3in','logic_nand_4in',
-    'logic_nor_2in','logic_nor_3in','logic_nor_4in',
-    'logic_xor_2in','logic_xor_3in','logic_xor_4in',
-    'logic_xnor_2in',
-    'logic_inverter','logic_buffer',
-  ];
-  for (const t of names) {
+const _symbolNames = [
+  'npn','pnp','darlington','mosfet',
+  'logic_and_2in','logic_and_3in','logic_and_4in',
+  'logic_nand_2in','logic_nand_3in','logic_nand_4in',
+  'logic_nor_2in','logic_nor_3in','logic_nor_4in',
+  'logic_xor_2in','logic_xor_3in','logic_xor_4in',
+  'logic_xnor_2in',
+  'logic_inverter','logic_buffer',
+];
+const _symbolsReady = Promise.all(_symbolNames.map(async (t) => {
     try {
       const r = await fetch(`/symbols/${t}.svg`);
       if (r.ok) _symbols[t] = await r.text();
     } catch {}
-  }
-})();
+}));
 
 const _SKIP = /flip.flop|vippa|\bjk\b|shift.register|counter|räknare|\blatch\b|register|comparator|komparator|\bmux\b|multiplexer|encoder|decoder|transceiver|selector|select/i;
 
@@ -290,6 +288,7 @@ form.addEventListener('submit', async function(e) {
     }
 
     if (data.components && data.components.length > 0) {
+      await _symbolsReady;
       const byId = {};
       data.components.forEach(c => byId[c.id] = c);
       const mentioned = data.components
