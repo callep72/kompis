@@ -1019,7 +1019,7 @@ LAYOUT = [
     (128, "CD40175"),     # 40175 = CD40175, duplicate of F0016
 ]
 
-DRAWER_LABEL = "L06"
+DRAWER_LABEL = "L21"
 
 
 def find_category(categories, hint):
