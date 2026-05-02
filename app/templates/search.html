@@ -31,6 +31,7 @@
     <div id="results" class="d-none">
       <div id="answer" class="mb-4 p-3 rounded border bg-body-secondary"></div>
       <div id="component-cards" class="row g-3"></div>
+      <div id="token-usage" class="mt-3 text-muted small text-end"></div>
     </div>
 
     <div id="error-msg" class="d-none alert alert-danger"></div>
@@ -83,6 +84,11 @@ document.getElementById('ask-form').addEventListener('submit', async function(e)
       orderedComponents.forEach(comp => {
         cardsEl.insertAdjacentHTML('beforeend', renderCard(comp));
       });
+    }
+
+    if (data.usage) {
+      document.getElementById('token-usage').textContent =
+        `Tokens: ${data.usage.input_tokens.toLocaleString('sv')} in / ${data.usage.output_tokens.toLocaleString('sv')} ut`;
     }
 
     results.classList.remove('d-none');

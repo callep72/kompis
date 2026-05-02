@@ -58,9 +58,15 @@ class AskRequest(BaseModel):
     question: str
 
 
+class TokenUsage(BaseModel):
+    input_tokens: int
+    output_tokens: int
+
+
 class AskResponse(BaseModel):
     answer: str
     components: list[dict]
+    usage: TokenUsage
 
 
 def _serialize(comp: Component) -> dict:
@@ -195,6 +201,8 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
         return {"error": f"Okänt verktyg: {name}"}
 
     messages = [{"role": "user", "content": body.question}]
+    total_input_tokens = 0
+    total_output_tokens = 0
 
     while True:
         response = client.messages.create(
@@ -204,6 +212,8 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
             tools=TOOLS,
             messages=messages,
         )
+        total_input_tokens += response.usage.input_tokens
+        total_output_tokens += response.usage.output_tokens
 
         if response.stop_reason == "end_turn":
             break
@@ -224,4 +234,8 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
             break
 
     answer = next((b.text for b in response.content if hasattr(b, "text")), "")
-    return AskResponse(answer=answer, components=list(components_found.values()))
+    return AskResponse(
+        answer=answer,
+        components=list(components_found.values()),
+        usage=TokenUsage(input_tokens=total_input_tokens, output_tokens=total_output_tokens),
+    )
