@@ -21,8 +21,13 @@ SYSTEM_PROMPT = (
     "  'kondensatorer' → sök 'capacitor'.\n"
     "- Gör hellre 2-3 smala sökningar än en bred. "
     "  Om första sökningen ger tomt resultat, prova kortare eller alternativa termer.\n"
-    "- Filtrera och resonera över returnerade data – Claude väljer ut rätt poster ur resultaten.\n\n"
-    "Inkludera relevanta specifikationer i svaret. Om en komponent har datablad, nämn det."
+    "- Filtrera och resonera över returnerade data.\n\n"
+    "Svarsformat:\n"
+    "- Vid 3 eller fler träffar: presentera alltid en Markdown-tabell som översikt först. "
+    "  Välj kolumner relevanta för frågan (t.ex. Modell | Typ | Vceo | Ic max | Paket | Lagerplats). "
+    "  Avsluta med kommentarer om urval, datablad och rekommendationer.\n"
+    "- Vid 1–2 träffar: beskriv komponenterna direkt utan tabell.\n"
+    "- Nämn alltid om en komponent har datablad tillgängligt."
 )
 
 TOOLS = [
