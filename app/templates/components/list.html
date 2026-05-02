@@ -59,6 +59,12 @@
                 <td>
                     <a href="/components/{{ comp.id }}" class="fw-semibold text-decoration-none">{{ comp.name }}</a>
                     {% if not comp.active %}<span class="badge bg-secondary ms-1">Inaktiv</span>{% endif %}
+                    {% set ds = comp.files | selectattr("file_type", "eq", "datasheet") | list %}
+                    {% if ds %}
+                    <a href="/files/{{ ds[0].filepath }}" target="_blank" class="ms-1 text-danger" title="Datablad: {{ ds[0].filename }}">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </a>
+                    {% endif %}
                 </td>
                 <td class="font-monospace">
                     {% for s in comp.stock %}
