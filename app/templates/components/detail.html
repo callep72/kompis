@@ -56,9 +56,14 @@
                 </tr>
                 {% endfor %}
             </table>
-            {% if transistor_symbol_svg %}
-            <div class="transistor-symbol" style="flex-shrink:0;opacity:0.85;width:120px;height:120px">
-                {{ transistor_symbol_svg | safe }}
+            {% if symbol_svg %}
+            <div class="d-flex align-items-center gap-2" style="flex-shrink:0;opacity:0.85">
+                <div class="component-symbol" style="width:120px;height:120px">
+                    {{ symbol_svg | safe }}
+                </div>
+                {% if symbol_label %}
+                <span class="fw-semibold text-body-secondary fs-5">{{ symbol_label }}</span>
+                {% endif %}
             </div>
             {% endif %}
         </div>

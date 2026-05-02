@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -86,37 +87,90 @@ def component_detail(request: Request, component_id: int, db: Session = Depends(
     comp = component_service.get_by_id(db, component_id)
     if not comp:
         return RedirectResponse("/admin", status_code=303)
-    sym = _transistor_symbol(comp)
+    svg, label = _component_symbol(comp)
     return templates.TemplateResponse("components/detail.html", {
         "request": request, "component": comp, "active_page": "components",
-        "transistor_symbol_svg": _load_symbol_svg(sym) if sym else None,
+        "symbol_svg": svg, "symbol_label": label,
     })
 
 
-def _load_symbol_svg(symbol_type: str) -> str | None:
+def _load_symbol_svg(name: str) -> str | None:
     try:
-        with open(f"symbols/{symbol_type}.svg") as f:
+        with open(f"symbols/{name}.svg") as f:
             return f.read()
     except OSError:
         return None
 
 
-def _transistor_symbol(comp) -> str | None:
+def _component_symbol(comp) -> tuple[str | None, str | None]:
+    svg = _transistor_svg(comp)
+    if svg:
+        return svg, None
+    name, label = _logic_svg(comp)
+    if name:
+        return _load_symbol_svg(name), label
+    return None, None
+
+
+def _transistor_svg(comp) -> str | None:
     cat_slug = (comp.category.slug if comp.category else "").lower()
     if "transistor" not in cat_slug:
         return None
     tags = [t.lower() for t in (comp.tags or [])]
     specs = comp.specs or {}
     if "darlington" in tags:
-        return "darlington"
+        return _load_symbol_svg("darlington")
     if "mosfet" in tags or "fet" in tags or specs.get("gate"):
-        return "mosfet"
+        return _load_symbol_svg("mosfet")
     t = specs.get("type", "").upper()
     if t == "NPN":
-        return "npn"
+        return _load_symbol_svg("npn")
     if t == "PNP":
-        return "pnp"
+        return _load_symbol_svg("pnp")
     return None
+
+
+_SKIP = re.compile(
+    r"\b(flip.flop|vippa|jk|shift.register|counter|räknare|latch|"
+    r"register|comparator|komparator|mux|encoder|decoder|transceiver)\b"
+)
+
+def _logic_svg(comp) -> tuple[str | None, str | None]:
+    cat_slug = (comp.category.slug if comp.category else "").lower()
+    if "digital" not in cat_slug and "logik" not in cat_slug:
+        return None, None
+    text = " ".join([comp.name] + list(comp.tags or [])).lower()
+    if _SKIP.search(text):
+        return None, None
+
+    if re.search(r"\bnand\b", text):
+        gate = "nand"
+    elif re.search(r"\b(nor|xor|xnor)\b", text):
+        return None, None
+    elif re.search(r"\band\b", text):
+        gate = "and"
+    elif re.search(r"\binverter\b", text):
+        gate = "inverter"
+    elif re.search(r"\bbuffer\b", text):
+        gate = "buffer"
+    else:
+        return None, None
+
+    inputs = 2
+    if gate in ("and", "nand"):
+        if re.search(r"\b4.input\b", text):
+            inputs = 4
+        elif re.search(r"\b3.input\b", text) or (gate == "nand" and "triple" in text):
+            inputs = 3
+
+    count = (8 if "octal" in text else 6 if "hex" in text else
+             4 if "quad" in text else 3 if "triple" in text else
+             2 if "dual" in text else None)
+
+    svg_name = (f"logic_{gate}_{inputs}in" if gate in ("and", "nand")
+                else f"logic_{gate}")
+    label = f"x{count}" if count and count > 1 else None
+    return svg_name, label
 
 
 @router.get("/components/{component_id}/edit", response_class=HTMLResponse)

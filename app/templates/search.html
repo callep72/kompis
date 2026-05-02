@@ -163,10 +163,16 @@
 <div id="error-msg" class="d-none alert alert-danger mt-3" style="max-width:860px; margin:0 auto;"></div>
 
 <script>
-// Preload transistor symbols
+// Preload all component symbols
 const _symbols = {};
 (async () => {
-  for (const t of ['npn', 'pnp', 'darlington', 'mosfet']) {
+  const names = [
+    'npn','pnp','darlington','mosfet',
+    'logic_and_2in','logic_and_3in','logic_and_4in',
+    'logic_nand_2in','logic_nand_3in','logic_nand_4in',
+    'logic_inverter','logic_buffer',
+  ];
+  for (const t of names) {
     try {
       const r = await fetch(`/symbols/${t}.svg`);
       if (r.ok) _symbols[t] = await r.text();
@@ -174,16 +180,49 @@ const _symbols = {};
   }
 })();
 
-function _transistorSymbol(c) {
+const _SKIP = /flip.flop|vippa|\bjk\b|shift.register|counter|räknare|\blatch\b|register|comparator|komparator|\bmux\b|encoder|decoder|transceiver/i;
+
+function _componentSymbol(c) {
+  // Transistors
   const cat = ((c.category || {}).slug || '').toLowerCase();
-  if (!cat.includes('transistor')) return null;
-  const tags = (c.tags || []).map(t => t.toLowerCase());
-  const type = ((c.specs || {}).type || '').toUpperCase();
-  if (tags.includes('darlington')) return 'darlington';
-  if (tags.some(t => t.includes('mosfet') || t === 'fet') || (c.specs || {}).gate) return 'mosfet';
-  if (type === 'NPN') return 'npn';
-  if (type === 'PNP') return 'pnp';
-  return null;
+  if (cat.includes('transistor')) {
+    const tags = (c.tags || []).map(t => t.toLowerCase());
+    const type = ((c.specs || {}).type || '').toUpperCase();
+    if (tags.includes('darlington')) return {name:'darlington', label:null};
+    if (tags.some(t => t.includes('mosfet') || t === 'fet') || (c.specs || {}).gate)
+      return {name:'mosfet', label:null};
+    if (type === 'NPN') return {name:'npn', label:null};
+    if (type === 'PNP') return {name:'pnp', label:null};
+    return null;
+  }
+
+  // Logic gates
+  if (!cat.includes('digital') && !cat.includes('logik')) return null;
+  const text = [c.name, ...(c.tags || [])].join(' ').toLowerCase();
+  if (_SKIP.test(text)) return null;
+
+  let gate = null;
+  if (/\bnand\b/.test(text))                    gate = 'nand';
+  else if (/\b(nor|xor|xnor)\b/.test(text))     return null;
+  else if (/\band\b/.test(text))                 gate = 'and';
+  else if (/\binverter\b/.test(text))            gate = 'inverter';
+  else if (/\bbuffer\b/.test(text))              gate = 'buffer';
+  if (!gate) return null;
+
+  let inputs = 2;
+  if (gate === 'and' || gate === 'nand') {
+    if (/\b4.input\b/.test(text)) inputs = 4;
+    else if (/\b3.input\b/.test(text) || (gate === 'nand' && /\btriple\b/.test(text))) inputs = 3;
+  }
+
+  const count = /\boctal\b/.test(text) ? 8 : /\bhex\b/.test(text) ? 6 :
+                /\bquad\b/.test(text) ? 4 : /\btriple\b/.test(text) ? 3 :
+                /\bdual\b/.test(text) ? 2 : null;
+
+  const svgName = (gate === 'and' || gate === 'nand')
+    ? `logic_${gate}_${inputs}in` : `logic_${gate}`;
+  const label = count && count > 1 ? `x${count}` : null;
+  return {name: svgName, label};
 }
 
 const form = document.getElementById('ask-form');
@@ -358,9 +397,12 @@ function renderCard(c) {
     ? `<span class="badge" style="background:var(--accent-glow,rgba(253,126,20,.18));color:var(--accent,#fd7e14);border:1px solid rgba(253,126,20,.35)">${c.category.name}</span>`
     : '';
 
-  const symType = _transistorSymbol(c);
-  const symHtml = symType && _symbols[symType]
-    ? `<div class="transistor-symbol ms-3" style="width:90px;height:90px;flex-shrink:0;opacity:0.8">${_symbols[symType]}</div>`
+  const sym = _componentSymbol(c);
+  const symHtml = sym && _symbols[sym.name]
+    ? `<div class="d-flex align-items-center gap-2 ms-3" style="flex-shrink:0;opacity:0.85">
+         <div class="component-symbol" style="width:90px;height:90px">${_symbols[sym.name]}</div>
+         ${sym.label ? `<span class="fw-semibold text-secondary" style="font-size:1rem;line-height:1">${sym.label}</span>` : ''}
+       </div>`
     : '';
 
   const specs = Object.entries(c.specs || {});
