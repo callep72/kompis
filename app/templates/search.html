@@ -409,6 +409,86 @@ function linkTableRows(components) {
   });
 }
 
+function _packageValue(c) {
+  const specs = c.specs || {};
+  return specs.package || specs.Package || specs.pkg || null;
+}
+
+function _packageIcon(c) {
+  const raw = _packageValue(c);
+  if (!raw) return '';
+  const pkg = String(raw).trim().toUpperCase();
+  const pins = parseInt((pkg.match(/(?:DIP|SO|SOP|SOIC|TSSOP|SSOP)[- ]?(\d+)/) || [])[1] || (c.specs || {}).pins || '', 10);
+
+  if (/^DIP/.test(pkg) || /^PDIP/.test(pkg)) return _dipIcon(pkg, Number.isFinite(pins) ? pins : null, false);
+  if (/^(SO|SOP|SOIC|TSSOP|SSOP)/.test(pkg)) return _dipIcon(pkg, Number.isFinite(pins) ? pins : null, true);
+  if (/^TO[- ]?220/.test(pkg)) return _toIcon(pkg, '220');
+  if (/^TO[- ]?92/.test(pkg)) return _toIcon(pkg, '92');
+  if (/^TO[- ]?66/.test(pkg)) return _toIcon(pkg, '66');
+  return _packageBadge(pkg);
+}
+
+function _packageFrame(pkg, svg) {
+  return `<div class="package-symbol" title="${pkg}" style="width:76px;height:90px;flex-shrink:0;opacity:0.82">${svg}</div>`;
+}
+
+function _dipIcon(pkg, pins, smd) {
+  const label = pins ? `${smd ? 'SO' : 'DIP'}-${pins}` : pkg;
+  const perSide = pins ? Math.min(Math.ceil(pins / 2), 20) : 7;
+  const pitch = 70 / Math.max(perSide - 1, 1);
+  const leftPins = Array.from({length: perSide}, (_, i) => {
+    const y = 15 + i * pitch;
+    return smd
+      ? `<rect x="4" y="${y - 2.2}" width="12" height="4.4" rx="1"/>`
+      : `<line x1="6" y1="${y}" x2="23" y2="${y}"/>`;
+  }).join('');
+  const rightPins = Array.from({length: perSide}, (_, i) => {
+    const y = 15 + i * pitch;
+    return smd
+      ? `<rect x="84" y="${y - 2.2}" width="12" height="4.4" rx="1"/>`
+      : `<line x1="77" y1="${y}" x2="94" y2="${y}"/>`;
+  }).join('');
+  const svg = `
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        ${leftPins}${rightPins}
+        <rect x="22" y="8" width="56" height="84" rx="${smd ? 4 : 7}"/>
+        <path d="M42 8 A8 8 0 0 0 58 8"/>
+      </g>
+      <text fill="currentColor" x="50" y="55" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700">${label}</text>
+    </svg>`;
+  return _packageFrame(pkg, svg);
+}
+
+function _toIcon(pkg, kind) {
+  const label = `TO-${kind}`;
+  const body = kind === '92'
+    ? '<path d="M30 54 A20 20 0 0 1 70 54 V72 H30 Z"/>'
+    : kind === '66'
+      ? '<path d="M25 33 H75 L84 50 L75 67 H25 L16 50 Z"/><circle cx="28" cy="50" r="5"/><circle cx="72" cy="50" r="5"/>'
+      : '<rect x="25" y="14" width="50" height="58" rx="4"/><circle cx="50" cy="29" r="7"/>';
+  const legs = kind === '92'
+    ? '<line x1="40" y1="72" x2="40" y2="94"/><line x1="50" y1="72" x2="50" y2="94"/><line x1="60" y1="72" x2="60" y2="94"/>'
+    : '<line x1="38" y1="72" x2="34" y2="94"/><line x1="50" y1="72" x2="50" y2="94"/><line x1="62" y1="72" x2="66" y2="94"/>';
+  const svg = `
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        ${body}${legs}
+      </g>
+      <text fill="currentColor" x="50" y="${kind === '92' ? 49 : 59}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700">${label}</text>
+    </svg>`;
+  return _packageFrame(pkg, svg);
+}
+
+function _packageBadge(pkg) {
+  const svg = `
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="10" y="24" width="80" height="52" rx="8" fill="none" stroke="currentColor" stroke-width="4"/>
+      <text fill="currentColor" x="50" y="55" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700">${pkg}</text>
+    </svg>`;
+  return _packageFrame(pkg, svg);
+}
+
 async function renderCard(c) {
   const datasheet = (c.files || []).find(f => f.file_type === 'datasheet');
   const pdfBtn = datasheet
@@ -427,10 +507,14 @@ async function renderCard(c) {
   const sym = _componentSymbol(c);
   const svg = sym ? await _symbolSvg(sym.name) : null;
   const symHtml = sym && svg
-    ? `<div class="d-flex align-items-center gap-2 ms-3" style="flex-shrink:0;opacity:0.85">
+    ? `<div class="d-flex align-items-center gap-2" style="flex-shrink:0;opacity:0.85">
          <div class="component-symbol" style="width:90px;height:90px">${svg}</div>
          ${sym.label ? `<span class="fw-semibold text-secondary" style="font-size:1rem;line-height:1">${sym.label}</span>` : ''}
        </div>`
+    : '';
+  const packageHtml = _packageIcon(c);
+  const visualHtml = packageHtml || symHtml
+    ? `<div class="d-flex align-items-center gap-2 ms-3" style="flex-shrink:0">${packageHtml}${symHtml}</div>`
     : '';
 
   const specs = Object.entries(c.specs || {});
@@ -441,9 +525,9 @@ async function renderCard(c) {
             `<span class="specs-key">${k}</span><span class="specs-val">${v}</span>`
           ).join('')}
         </div>
-        ${symHtml}
+        ${visualHtml}
        </div>`
-    : symHtml ? `<div class="mt-2">${symHtml}</div>` : '';
+    : visualHtml ? `<div class="mt-2 d-flex justify-content-end">${visualHtml}</div>` : '';
 
   const stockHtml = (c.stock || []).length
     ? (c.stock || []).map(s => {
