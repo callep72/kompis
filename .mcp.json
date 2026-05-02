@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "kompis": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["-m", "kompis_mcp.server"],
+      "cwd": "/home/calle/projects/kompis",
+      "env": {
+        "KOMPIS_URL": "https://kompis.duplo.cc"
+      }
+    }
+  }
+}

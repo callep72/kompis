@@ -1,32 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
   <defs>
     <style>
-      .line { fill: none; stroke: currentColor; stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
-      .label { fill: currentColor; font-family: Arial, Helvetica, sans-serif; font-size: 62px; font-weight: 700; }
+      .line { fill: none; stroke: #000; stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
+      .label { fill: #000; font-family: Arial, Helvetica, sans-serif; font-size: 62px; font-weight: 700; }
+      .arrow { fill: #000; }
     </style>
   </defs>
 
-  <!-- Transparent background by design -->
-
-  <!-- transistor enclosure -->
   <circle class="line" cx="540" cy="520" r="300"/>
 
-  <!-- base -->
+  <!-- Base -->
   <line class="line" x1="95" y1="520" x2="415" y2="520"/>
   <line class="line" x1="415" y1="360" x2="415" y2="680"/>
 
-  <!-- emitter and collector branches -->
+  <!-- Internal branches -->
   <line class="line" x1="415" y1="475" x2="735" y2="220"/>
   <line class="line" x1="415" y1="585" x2="735" y2="835"/>
 
-  <!-- external leads -->
+  <!-- External leads -->
   <line class="line" x1="735" y1="220" x2="735" y2="90"/>
   <line class="line" x1="735" y1="835" x2="735" y2="960"/>
 
-  <!-- PNP emitter arrow (pointing inward) -->
-  <polygon points="510,398 591,364 548,325" fill="currentColor"/>
+  <!-- NPN arrow on emitter, pointing outward -->
+  <polygon class="arrow" points="640,300 700,357 680,291"/>
 
-  <!-- labels -->
+  <!-- Labels -->
   <text class="label" x="125" y="468">B</text>
   <text class="label" x="790" y="178">E</text>
   <text class="label" x="790" y="915">C</text>

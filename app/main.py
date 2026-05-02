@@ -29,6 +29,7 @@ app = FastAPI(
 app.add_middleware(FileSizeLimitMiddleware)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/symbols", StaticFiles(directory="symbols"), name="symbols")
 app.mount("/files", StaticFiles(directory=settings.file_storage_path), name="files")
 
 app.include_router(components.router)

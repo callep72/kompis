@@ -168,7 +168,7 @@ const _symbols = {};
 (async () => {
   for (const t of ['npn', 'pnp', 'darlington', 'mosfet']) {
     try {
-      const r = await fetch(`/static/symbols/${t}.svg`);
+      const r = await fetch(`/symbols/${t}.svg`);
       if (r.ok) _symbols[t] = await r.text();
     } catch {}
   }

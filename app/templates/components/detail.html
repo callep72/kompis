@@ -56,9 +56,9 @@
                 </tr>
                 {% endfor %}
             </table>
-            {% if transistor_symbol %}
+            {% if transistor_symbol_svg %}
             <div class="transistor-symbol" style="flex-shrink:0;opacity:0.85;width:120px;height:120px">
-                {% include "symbols/" + transistor_symbol + ".svg" %}
+                {{ transistor_symbol_svg | safe }}
             </div>
             {% endif %}
         </div>

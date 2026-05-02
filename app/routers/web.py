@@ -86,10 +86,19 @@ def component_detail(request: Request, component_id: int, db: Session = Depends(
     comp = component_service.get_by_id(db, component_id)
     if not comp:
         return RedirectResponse("/admin", status_code=303)
+    sym = _transistor_symbol(comp)
     return templates.TemplateResponse("components/detail.html", {
         "request": request, "component": comp, "active_page": "components",
-        "transistor_symbol": _transistor_symbol(comp),
+        "transistor_symbol_svg": _load_symbol_svg(sym) if sym else None,
     })
+
+
+def _load_symbol_svg(symbol_type: str) -> str | None:
+    try:
+        with open(f"symbols/{symbol_type}.svg") as f:
+            return f.read()
+    except OSError:
+        return None
 
 
 def _transistor_symbol(comp) -> str | None:

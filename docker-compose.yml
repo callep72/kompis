@@ -25,6 +25,7 @@ services:
     volumes:
       - ./app:/app/app
       - ./data/files:/data/files
+      - ./symbols:/app/symbols:ro
     depends_on:
       db:
         condition: service_healthy
