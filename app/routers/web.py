@@ -16,6 +16,16 @@ router = APIRouter(include_in_schema=False)
 templates = Jinja2Templates(directory="app/templates")
 
 
+# --- Search ---
+
+@router.get("/search", response_class=HTMLResponse)
+def search(request: Request):
+    return templates.TemplateResponse("search.html", {
+        "request": request,
+        "active_page": "search",
+    })
+
+
 # --- Components ---
 
 @router.get("/", response_class=HTMLResponse)

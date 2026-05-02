@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Sök – KOMPIS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <h1 class="h4 mb-4"><i class="bi bi-search"></i> Sök i lagret</h1>
+
+    <form id="ask-form" class="mb-4">
+      <div class="input-group input-group-lg">
+        <input
+          id="ask-input"
+          type="text"
+          class="form-control"
+          placeholder="Vad letar du efter? T.ex. 'NPN-transistorer för 200 V' eller 'vilka nixie-drivare finns?'"
+          autocomplete="off"
+          autofocus
+        >
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-search"></i> Sök
+        </button>
+      </div>
+    </form>
+
+    <div id="status" class="d-none text-muted mb-3">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Frågar Claude…
+    </div>
+
+    <div id="results" class="d-none">
+      <div id="answer" class="mb-4 p-3 rounded border bg-body-secondary"></div>
+      <div id="component-cards" class="row g-3"></div>
+    </div>
+
+    <div id="error-msg" class="d-none alert alert-danger"></div>
+
+  </div>
+</div>
+
+<script>
+document.getElementById('ask-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const question = document.getElementById('ask-input').value.trim();
+  if (!question) return;
+
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+  const errorMsg = document.getElementById('error-msg');
+  const answerEl = document.getElementById('answer');
+  const cardsEl = document.getElementById('component-cards');
+
+  status.classList.remove('d-none');
+  results.classList.add('d-none');
+  errorMsg.classList.add('d-none');
+  cardsEl.innerHTML = '';
+  answerEl.innerHTML = '';
+
+  try {
+    const resp = await fetch('/api/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question}),
+    });
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+    }
+
+    const data = await resp.json();
+
+    answerEl.innerHTML = formatAnswer(data.answer);
+
+    if (data.components && data.components.length > 0) {
+      const indexById = {};
+      data.components.forEach(c => indexById[c.id] = c);
+
+      const mentionedIds = extractMentionedIds(data.answer, data.components);
+      const orderedComponents = mentionedIds.length > 0
+        ? mentionedIds.map(id => indexById[id]).filter(Boolean)
+        : data.components;
+
+      orderedComponents.forEach(comp => {
+        cardsEl.insertAdjacentHTML('beforeend', renderCard(comp));
+      });
+    }
+
+    results.classList.remove('d-none');
+  } catch (err) {
+    errorMsg.textContent = 'Något gick fel: ' + err.message;
+    errorMsg.classList.remove('d-none');
+  } finally {
+    status.classList.add('d-none');
+  }
+});
+
+function formatAnswer(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function extractMentionedIds(answer, components) {
+  return components
+    .filter(c => answer.includes(c.name) || (c.part_number && answer.includes(c.part_number)))
+    .map(c => c.id);
+}
+
+function renderCard(comp) {
+  const datasheet = (comp.files || []).find(f => f.file_type === 'datasheet');
+  const datasheetHtml = datasheet
+    ? `<a href="/files/${datasheet.filepath}" target="_blank" class="btn btn-sm btn-outline-secondary">
+         <i class="bi bi-file-earmark-pdf text-danger"></i> Datablad
+       </a>`
+    : '';
+
+  const stockHtml = (comp.stock || []).map(s => {
+    const loc = [s.drawer, s.compartment].filter(Boolean).join(' › ');
+    return `<span class="badge bg-secondary me-1">${loc ? loc + ': ' : ''}${s.quantity} ${s.unit}</span>`;
+  }).join('') || '<span class="text-muted small">Inget lager registrerat</span>';
+
+  const specsHtml = Object.keys(comp.specs || {}).length > 0
+    ? `<table class="table table-sm table-borderless mb-2">
+        <tbody>
+          ${Object.entries(comp.specs).map(([k, v]) =>
+            `<tr><td class="text-muted pe-3 py-0" style="width:40%">${k}</td><td class="py-0 font-monospace">${v}</td></tr>`
+          ).join('')}
+        </tbody>
+      </table>`
+    : '';
+
+  const tagsHtml = (comp.tags || []).map(t =>
+    `<span class="badge rounded-pill bg-body-tertiary text-body-secondary border me-1">${t}</span>`
+  ).join('');
+
+  const categoryHtml = comp.category
+    ? `<span class="badge bg-info text-dark me-2">${comp.category.name}</span>`
+    : '';
+
+  const mfr = [comp.manufacturer, comp.part_number].filter(Boolean).join(' · ');
+
+  return `
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h5 class="card-title mb-0">
+                <a href="/components/${comp.id}" class="text-decoration-none">${comp.name}</a>
+              </h5>
+              ${mfr ? `<small class="text-muted">${mfr}</small>` : ''}
+            </div>
+            <div class="text-end">
+              ${categoryHtml}
+              ${datasheetHtml}
+            </div>
+          </div>
+          ${comp.description ? `<p class="card-text text-muted small mb-2">${comp.description}</p>` : ''}
+          ${specsHtml}
+          <div class="mb-1">${stockHtml}</div>
+          ${tagsHtml ? `<div class="mt-2">${tagsHtml}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+</script>
+{% endblock %}

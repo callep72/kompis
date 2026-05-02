@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import settings
-from app.routers import components, locations, stock, categories, files, web
+from app.routers import components, locations, stock, categories, files, web, ask
 
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
@@ -36,6 +36,7 @@ app.include_router(locations.router)
 app.include_router(stock.router)
 app.include_router(categories.router)
 app.include_router(files.router)
+app.include_router(ask.router)
 app.include_router(web.router)
 
 
