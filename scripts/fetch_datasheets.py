@@ -130,6 +130,21 @@ DATASHEETS = [
 
     # --- Vintage / Special (MOS Technology archive) ---
     ("MOS 6561 (VIC)", "https://archive.6502.org/datasheets/mos_6560_6561_vic.pdf", "MOS6561_VIC.pdf"),
+
+    # --- Spänningsregulatorer ---
+    ("78L05",    "https://www.st.com/resource/en/datasheet/l78l.pdf",              "L78L.pdf"),
+    ("L7805CV",  "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7805.pdf"),
+    ("7805",     "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7805.pdf"),
+    ("79M05AHC", "https://www.onsemi.com/pdf/datasheet/mc79m00-d.pdf",             "MC79M00.pdf"),
+    ("TS7809",   "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7809.pdf"),
+    ("L78S12CV", "https://www.st.com/resource/en/datasheet/l78s.pdf",              "L78S.pdf"),
+    ("7812C",    "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7812.pdf"),
+    ("LM340T12", "https://www.ti.com/lit/ds/symlink/lm340.pdf",                    "LM340.pdf"),
+    ("GL7915",   "https://www.onsemi.com/pdf/datasheet/mc7900-d.pdf",              "MC7900.pdf"),
+    ("L7818CV",  "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7818.pdf"),
+    ("L7812CV",  "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7812cv.pdf"),
+    ("UA78GU1C", "https://www.qsl.net/n9zia/gemlink/UA78GU1C.pdf",                 "UA78GU1C.pdf"),
+    ("TL783C",   "https://www.ti.com/lit/ds/symlink/tl783.pdf",                    "TL783C.pdf"),
 ]
 
 # ---------------------------------------------------------------------------
