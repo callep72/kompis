@@ -12,8 +12,8 @@
     <line x1="720" y1="350" x2="720" y2="520"/>
     <line x1="720" y1="825" x2="720" y2="960"/>
   </g>
-  <polygon fill="currentColor" stroke="none" points="427,646 480,694 444,619"/>
-  <polygon fill="currentColor" stroke="none" points="659,775 731,842 689,751"/>
+  <polygon fill="currentColor" stroke="none" points="414,644 488,711 438,606"/>
+  <polygon fill="currentColor" stroke="none" points="646,769 747,863 688,736"/>
   <text fill="currentColor" stroke="none" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" x="125" y="468">B</text>
   <text fill="currentColor" stroke="none" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" x="775" y="135">C</text>
   <text fill="currentColor" stroke="none" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" x="775" y="915">E</text>

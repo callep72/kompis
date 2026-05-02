@@ -8,7 +8,7 @@
     <line x1="735" y1="220" x2="735" y2="90"/>
     <line x1="735" y1="835" x2="735" y2="960"/>
   </g>
-  <polygon fill="currentColor" stroke="none" points="490,416 612,365 547,306"/>
+  <polygon fill="currentColor" stroke="none" points="505,403 637,368 569,282"/>
   <text fill="currentColor" stroke="none" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" x="125" y="468">B</text>
   <text fill="currentColor" stroke="none" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" x="790" y="178">E</text>
   <text fill="currentColor" stroke="none" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" x="790" y="915">C</text>
