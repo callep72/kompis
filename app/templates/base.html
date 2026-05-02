@@ -37,6 +37,7 @@
                             <i class="bi bi-search"></i> Sök
                         </a>
                     </li>
+                    {% if active_page != 'search' %}
                     <li class="nav-item"><span class="nav-link text-muted px-1 d-none d-lg-inline">|</span></li>
                     <li class="nav-item">
                         <a class="nav-link {% if active_page == 'components' %}active{% endif %}" href="/admin">
@@ -58,6 +59,7 @@
                             <i class="bi bi-exclamation-triangle"></i> Lågt lager
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
