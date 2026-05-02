@@ -24,14 +24,14 @@ def get_all(
             cast(Component.specs, Text).ilike(f"%{q}%"),
         ]
         if len(words) > 1:
-            conditions.append(and_(*[
+            conditions.extend([
                 or_(
                     Component.name.ilike(f"%{w}%"),
                     func.array_to_string(Component.tags, " ").ilike(f"%{w}%"),
                     cast(Component.specs, Text).ilike(f"%{w}%"),
                 )
                 for w in words
-            ]))
+            ])
         query = query.filter(or_(*conditions))
 
     if category_id is not None:

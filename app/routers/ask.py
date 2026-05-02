@@ -14,13 +14,11 @@ SYSTEM_PROMPT = (
     "Du är en hjälpsam assistent för KOMPIS, ett lagerhanteringssystem för elektronikkomponenter. "
     "Svara alltid på svenska.\n\n"
     "Sökregler:\n"
-    "- Sök alltid med enkla engelska nyckelord, inte svenska fraser. "
-    "  Komponenter är lagrade med engelska taggar och specs. "
-    "  'germaniumtransistorer' → sök 'germanium'. "
-    "  'NPN-transistorer' → sök 'NPN' eller 'transistor'. "
-    "  'kondensatorer' → sök 'capacitor'.\n"
-    "- Gör hellre 2-3 smala sökningar än en bred. "
-    "  Om första sökningen ger tomt resultat, prova kortare eller alternativa termer.\n"
+    "- Sök alltid med ETT enkelt engelskt nyckelord per sökning, aldrig fraser. "
+    "  'nixie driver' → sök 'nixie'. 'germaniumtransistorer' → sök 'germanium'. "
+    "  'NPN darlington' → sök 'darlington'. 'kondensatorer' → sök 'capacitor'.\n"
+    "- Gör hellre 2-3 separata enkelsökningar och resonera över resultaten "
+    "  än att söka på en flerordsfras.\n"
     "- Filtrera och resonera över returnerade data.\n\n"
     "Svarsformat:\n"
     "- Vid 3 eller fler träffar: presentera alltid en Markdown-tabell som översikt först. "
@@ -146,16 +144,16 @@ def _search_with_files(
             func.array_to_string(Component.tags, " ").ilike(f"%{query}%"),
             cast(Component.specs, Text).ilike(f"%{query}%"),
         ]
-        # For multi-word queries: all words must appear somewhere in name/tags/specs
+        # For multi-word queries: any word matching name/tags/specs is a candidate
         if len(words) > 1:
-            conditions.append(and_(*[
+            conditions.extend([
                 or_(
                     Component.name.ilike(f"%{w}%"),
                     func.array_to_string(Component.tags, " ").ilike(f"%{w}%"),
                     cast(Component.specs, Text).ilike(f"%{w}%"),
                 )
                 for w in words
-            ]))
+            ])
         q = q.filter(or_(*conditions)
         )
 
