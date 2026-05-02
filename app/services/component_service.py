@@ -1,4 +1,4 @@
-from sqlalchemy import cast, or_, func, Text
+from sqlalchemy import cast, or_, and_, func, Text
 from sqlalchemy.orm import Session, joinedload
 from app.models.models import Component, Compartment, Stock
 from app.schemas.schemas import ComponentCreate, ComponentUpdate
@@ -15,17 +15,24 @@ def get_all(
     query = db.query(Component).filter(Component.active == True)
 
     if q:
-        query = query.filter(
-            or_(
-                Component.search_vector.op("@@")(
-                    func.websearch_to_tsquery("swedish", q)
-                ),
-                Component.name.ilike(f"%{q}%"),
-                Component.part_number.ilike(f"%{q}%"),
-                func.array_to_string(Component.tags, " ").ilike(f"%{q}%"),
-                cast(Component.specs, Text).ilike(f"%{q}%"),
-            )
-        )
+        words = [w for w in q.split() if len(w) > 1]
+        conditions = [
+            Component.search_vector.op("@@")(func.websearch_to_tsquery("swedish", q)),
+            Component.name.ilike(f"%{q}%"),
+            Component.part_number.ilike(f"%{q}%"),
+            func.array_to_string(Component.tags, " ").ilike(f"%{q}%"),
+            cast(Component.specs, Text).ilike(f"%{q}%"),
+        ]
+        if len(words) > 1:
+            conditions.append(and_(*[
+                or_(
+                    Component.name.ilike(f"%{w}%"),
+                    func.array_to_string(Component.tags, " ").ilike(f"%{w}%"),
+                    cast(Component.specs, Text).ilike(f"%{w}%"),
+                )
+                for w in words
+            ]))
+        query = query.filter(or_(*conditions))
 
     if category_id is not None:
         query = query.filter(Component.category_id == category_id)

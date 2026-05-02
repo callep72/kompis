@@ -133,20 +133,30 @@ def _search_with_files(
     limit: int = 20,
     skip: int = 0,
 ) -> list[Component]:
-    from sqlalchemy import or_, func, cast, Text
-    from app.models.models import File
+    from sqlalchemy import or_, and_, func, cast, Text
 
     q = db.query(Component).filter(Component.active == True)
 
     if query:
-        q = q.filter(
-            or_(
-                Component.search_vector.op("@@")(func.websearch_to_tsquery("swedish", query)),
-                Component.name.ilike(f"%{query}%"),
-                Component.part_number.ilike(f"%{query}%"),
-                func.array_to_string(Component.tags, " ").ilike(f"%{query}%"),
-                cast(Component.specs, Text).ilike(f"%{query}%"),
-            )
+        words = [w for w in query.split() if len(w) > 1]
+        conditions = [
+            Component.search_vector.op("@@")(func.websearch_to_tsquery("swedish", query)),
+            Component.name.ilike(f"%{query}%"),
+            Component.part_number.ilike(f"%{query}%"),
+            func.array_to_string(Component.tags, " ").ilike(f"%{query}%"),
+            cast(Component.specs, Text).ilike(f"%{query}%"),
+        ]
+        # For multi-word queries: all words must appear somewhere in name/tags/specs
+        if len(words) > 1:
+            conditions.append(and_(*[
+                or_(
+                    Component.name.ilike(f"%{w}%"),
+                    func.array_to_string(Component.tags, " ").ilike(f"%{w}%"),
+                    cast(Component.specs, Text).ilike(f"%{w}%"),
+                )
+                for w in words
+            ]))
+        q = q.filter(or_(*conditions)
         )
 
     if category_id is not None:
