@@ -222,13 +222,53 @@ form.addEventListener('submit', async function(e) {
 
 function fmt(n) { return n.toLocaleString('sv'); }
 
-function formatAnswer(text) {
+function inlineFormat(text) {
   return text
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,'<em>$1</em>')
-    .replace(/`(.+?)`/g,'<code>$1</code>')
-    .replace(/\n/g,'<br>');
+    .replace(/`(.+?)`/g,'<code>$1</code>');
+}
+
+function formatAnswer(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let tableRows = [];
+
+  function flushTable() {
+    if (!tableRows.length) return;
+    let html = '<div class="table-responsive my-2"><table class="table table-sm table-hover mb-0 small">';
+    tableRows.forEach((cells, i) => {
+      const tag = i === 0 ? 'th' : 'td';
+      html += '<tr>' + cells.map(c => `<${tag} class="py-1">${inlineFormat(c)}</${tag}>`).join('') + '</tr>';
+    });
+    html += '</table></div>';
+    out.push(html);
+    tableRows = [];
+  }
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (/^\|/.test(line)) {
+      if (/^[\|\s\-:]+$/.test(line)) continue; // separator row
+      tableRows.push(line.split('|').slice(1, -1).map(c => c.trim()));
+    } else {
+      flushTable();
+      if (/^##\s+/.test(line)) {
+        out.push(`<p class="fw-semibold mb-1 mt-3">${inlineFormat(line.replace(/^##\s+/,''))}</p>`);
+      } else if (/^#\s+/.test(line)) {
+        out.push(`<p class="fw-bold mb-1 mt-2">${inlineFormat(line.replace(/^#\s+/,''))}</p>`);
+      } else if (/^[-*]\s+/.test(line)) {
+        out.push(`<div class="ms-2 mb-1">• ${inlineFormat(line.replace(/^[-*]\s+/,''))}</div>`);
+      } else if (line === '') {
+        out.push('<div class="mb-2"></div>');
+      } else {
+        out.push(`<p class="mb-1">${inlineFormat(line)}</p>`);
+      }
+    }
+  }
+  flushTable();
+  return out.join('');
 }
 
 function renderCard(c) {
@@ -243,7 +283,7 @@ function renderCard(c) {
   const mfr = [c.manufacturer, c.part_number].filter(Boolean).join(' · ');
 
   const catBadge = c.category
-    ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border">${c.category.name}</span>`
+    ? `<span class="badge bg-primary-subtle text-primary-emphasis">${c.category.name}</span>`
     : '';
 
   const specs = Object.entries(c.specs || {});
@@ -264,7 +304,7 @@ function renderCard(c) {
     : `<span class="text-secondary small">Inget lager registrerat</span>`;
 
   const tagsHtml = (c.tags || []).map(t =>
-    `<span class="badge rounded-pill bg-body-tertiary text-body-secondary border me-1 mb-1">${t}</span>`
+    `<span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis me-1 mb-1">${t}</span>`
   ).join('');
 
   return `
