@@ -181,6 +181,19 @@ const _symbolsReady = Promise.all(_symbolNames.map(async (t) => {
     } catch {}
 }));
 
+async function _symbolSvg(name) {
+  if (!name) return null;
+  if (_symbols[name]) return _symbols[name];
+  try {
+    const r = await fetch(`/symbols/${name}.svg`);
+    if (!r.ok) return null;
+    _symbols[name] = await r.text();
+    return _symbols[name];
+  } catch {
+    return null;
+  }
+}
+
 const _SKIP = /flip.flop|vippa|\bjk\b|shift.register|counter|räknare|\blatch\b|register|comparator|komparator|\bmux\b|multiplexer|encoder|decoder|transceiver|selector|select/i;
 
 function _hasGate(text, gate) {
@@ -288,7 +301,6 @@ form.addEventListener('submit', async function(e) {
     }
 
     if (data.components && data.components.length > 0) {
-      await _symbolsReady;
       const byId = {};
       data.components.forEach(c => byId[c.id] = c);
       const mentioned = data.components
@@ -297,7 +309,9 @@ form.addEventListener('submit', async function(e) {
       const ordered = mentioned.length > 0
         ? mentioned.map(id => byId[id]).filter(Boolean)
         : data.components;
-      ordered.forEach(c => cardsEl.insertAdjacentHTML('beforeend', renderCard(c)));
+      for (const c of ordered) {
+        cardsEl.insertAdjacentHTML('beforeend', await renderCard(c));
+      }
       linkTableRows(data.components);
     }
 
@@ -395,7 +409,7 @@ function linkTableRows(components) {
   });
 }
 
-function renderCard(c) {
+async function renderCard(c) {
   const datasheet = (c.files || []).find(f => f.file_type === 'datasheet');
   const pdfBtn = datasheet
     ? `<a href="/files/${datasheet.filepath}" target="_blank"
@@ -411,9 +425,10 @@ function renderCard(c) {
     : '';
 
   const sym = _componentSymbol(c);
-  const symHtml = sym && _symbols[sym.name]
+  const svg = sym ? await _symbolSvg(sym.name) : null;
+  const symHtml = sym && svg
     ? `<div class="d-flex align-items-center gap-2 ms-3" style="flex-shrink:0;opacity:0.85">
-         <div class="component-symbol" style="width:90px;height:90px">${_symbols[sym.name]}</div>
+         <div class="component-symbol" style="width:90px;height:90px">${svg}</div>
          ${sym.label ? `<span class="fw-semibold text-secondary" style="font-size:1rem;line-height:1">${sym.label}</span>` : ''}
        </div>`
     : '';
