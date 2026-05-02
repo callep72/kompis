@@ -12,16 +12,26 @@ router = APIRouter(tags=["ask"])
 
 SYSTEM_PROMPT = (
     "Du är en hjälpsam assistent för KOMPIS, ett lagerhanteringssystem för elektronikkomponenter. "
-    "Svara alltid på svenska. Använd verktygen för att söka i lagret och ge ett koncist, informativt svar. "
-    "När du listar komponenter, ta med relevanta specifikationer. "
-    "Om du hittar komponenter med datablad, nämn det."
+    "Svara alltid på svenska.\n\n"
+    "Sökregler:\n"
+    "- Sök alltid med enkla engelska nyckelord, inte svenska fraser. "
+    "  Komponenter är lagrade med engelska taggar och specs. "
+    "  'germaniumtransistorer' → sök 'germanium'. "
+    "  'NPN-transistorer' → sök 'NPN' eller 'transistor'. "
+    "  'kondensatorer' → sök 'capacitor'.\n"
+    "- Gör hellre 2-3 smala sökningar än en bred. "
+    "  Om första sökningen ger tomt resultat, prova kortare eller alternativa termer.\n"
+    "- Filtrera och resonera över returnerade data – Claude väljer ut rätt poster ur resultaten.\n\n"
+    "Inkludera relevanta specifikationer i svaret. Om en komponent har datablad, nämn det."
 )
 
 TOOLS = [
     {
         "name": "search_components",
         "description": (
-            "Sök efter komponenter i KOMPIS-lagret med fritext, kategori eller lagerstatus. "
+            "Sök efter komponenter i KOMPIS-lagret. "
+            "Använd enkla engelska nyckelord: 'germanium', 'NPN', 'NAND', 'capacitor' etc. "
+            "Svenska fraser matchar inte – sök på materialet eller komponenttypen på engelska. "
             "Returnerar komponenter med specs, lagerplatser och filer (datablad etc)."
         ),
         "input_schema": {
