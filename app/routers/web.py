@@ -142,8 +142,12 @@ def _logic_svg(comp) -> tuple[str | None, str | None]:
 
     if re.search(r"\bnand\b", text):
         gate = "nand"
-    elif re.search(r"\b(nor|xor|xnor)\b", text):
-        return None, None
+    elif re.search(r"\bxnor\b", text):
+        gate = "xnor"
+    elif re.search(r"\bxor\b", text):
+        gate = "xor"
+    elif re.search(r"\bnor\b", text):
+        gate = "nor"
     elif re.search(r"\band gate\b|\binput and\b|\band-gate\b", text):
         gate = "and"
     elif re.search(r"\binverter\b", text):
@@ -154,7 +158,7 @@ def _logic_svg(comp) -> tuple[str | None, str | None]:
         return None, None
 
     inputs = 2
-    if gate in ("and", "nand"):
+    if gate in ("and", "nand", "nor", "xor", "xnor"):
         if re.search(r"\b4.input\b", text):
             inputs = 4
         elif re.search(r"\b3.input\b", text) or (gate == "nand" and "triple" in text):
@@ -164,7 +168,7 @@ def _logic_svg(comp) -> tuple[str | None, str | None]:
              4 if "quad" in text else 3 if "triple" in text else
              2 if "dual" in text else None)
 
-    svg_name = (f"logic_{gate}_{inputs}in" if gate in ("and", "nand")
+    svg_name = (f"logic_{gate}_{inputs}in" if gate in ("and", "nand", "nor", "xor", "xnor")
                 else f"logic_{gate}")
     label = f"x{count}" if count and count > 1 else None
     return svg_name, label

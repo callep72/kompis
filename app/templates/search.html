@@ -170,6 +170,8 @@ const _symbols = {};
     'npn','pnp','darlington','mosfet',
     'logic_and_2in','logic_and_3in','logic_and_4in',
     'logic_nand_2in','logic_nand_3in','logic_nand_4in',
+    'logic_nor_2in','logic_nor_3in',
+    'logic_xor_2in','logic_xnor_2in',
     'logic_inverter','logic_buffer',
   ];
   for (const t of names) {
@@ -201,15 +203,17 @@ function _componentSymbol(c) {
   if (_SKIP.test(text)) return null;
 
   let gate = null;
-  if (/\bnand\b/.test(text))                                              gate = 'nand';
-  else if (/\b(nor|xor|xnor)\b/.test(text))                              return null;
-  else if (/\band gate\b|\binput and\b|\band-gate\b/.test(text))          gate = 'and';
+  if (/\bnand\b/.test(text))                                gate = 'nand';
+  else if (/\bxnor\b/.test(text))                          gate = 'xnor';
+  else if (/\bxor\b/.test(text))                           gate = 'xor';
+  else if (/\bnor\b/.test(text))                           gate = 'nor';
+  else if (/\band gate\b|\binput and\b|\band-gate\b/.test(text)) gate = 'and';
   else if (/\binverter\b/.test(text))            gate = 'inverter';
   else if (/\bbuffer\b/.test(text))              gate = 'buffer';
   if (!gate) return null;
 
   let inputs = 2;
-  if (gate === 'and' || gate === 'nand') {
+  if (['and','nand','nor','xor','xnor'].includes(gate)) {
     if (/\b4.input\b/.test(text)) inputs = 4;
     else if (/\b3.input\b/.test(text) || (gate === 'nand' && /\btriple\b/.test(text))) inputs = 3;
   }
@@ -218,7 +222,7 @@ function _componentSymbol(c) {
                 /\bquad\b/.test(text) ? 4 : /\btriple\b/.test(text) ? 3 :
                 /\bdual\b/.test(text) ? 2 : null;
 
-  const svgName = (gate === 'and' || gate === 'nand')
+  const svgName = ['and','nand','nor','xor','xnor'].includes(gate)
     ? `logic_${gate}_${inputs}in` : `logic_${gate}`;
   const label = count && count > 1 ? `x${count}` : null;
   return {name: svgName, label};
