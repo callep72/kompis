@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-hidden="true">
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="19.0" y="8" width="62" height="66" rx="4"/>
+    <circle cx="50" cy="23" r="8"/>
+    <line x1="38" y1="74" x2="33.8" y2="94"/><line x1="50" y1="74" x2="50.0" y2="94"/><line x1="62" y1="74" x2="66.2" y2="94"/>
+  </g>
+  <text fill="currentColor" x="50" y="61" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="700">TO-247</text>
+</svg>

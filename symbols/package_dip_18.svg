@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-hidden="true">
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="6" y1="15.00" x2="23" y2="15.00"/><line x1="6" y1="23.75" x2="23" y2="23.75"/><line x1="6" y1="32.50" x2="23" y2="32.50"/><line x1="6" y1="41.25" x2="23" y2="41.25"/><line x1="6" y1="50.00" x2="23" y2="50.00"/><line x1="6" y1="58.75" x2="23" y2="58.75"/><line x1="6" y1="67.50" x2="23" y2="67.50"/><line x1="6" y1="76.25" x2="23" y2="76.25"/><line x1="6" y1="85.00" x2="23" y2="85.00"/><line x1="77" y1="15.00" x2="94" y2="15.00"/><line x1="77" y1="23.75" x2="94" y2="23.75"/><line x1="77" y1="32.50" x2="94" y2="32.50"/><line x1="77" y1="41.25" x2="94" y2="41.25"/><line x1="77" y1="50.00" x2="94" y2="50.00"/><line x1="77" y1="58.75" x2="94" y2="58.75"/><line x1="77" y1="67.50" x2="94" y2="67.50"/><line x1="77" y1="76.25" x2="94" y2="76.25"/><line x1="77" y1="85.00" x2="94" y2="85.00"/>
+    <rect x="22" y="8" width="56" height="84" rx="7"/>
+    <path d="M42 8 A8 8 0 0 0 58 8"/>
+  </g>
+  <text fill="currentColor" x="50" y="55" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700">DIP-18</text>
+</svg>

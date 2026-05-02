@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-hidden="true">
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 42 C18 23 82 23 82 42 C82 61 18 61 18 42 Z"/>
+    <circle cx="25" cy="42" r="5"/>
+    <circle cx="75" cy="42" r="5"/>
+    <line x1="43" y1="61" x2="38" y2="94"/>
+    <line x1="57" y1="61" x2="62" y2="94"/>
+  </g>
+  <text fill="currentColor" x="50" y="47" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700">TO-3</text>
+</svg>
