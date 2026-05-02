@@ -149,13 +149,17 @@ def download_pdf(url, timeout=30):
     """Download URL, return bytes if it's a PDF, else None."""
     try:
         req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0 (compatible; KOMPIS-datasheet-fetcher/1.0)",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+            "Accept": "application/pdf,*/*",
         })
-        with urllib.request.urlopen(req, timeout=timeout) as r:
+        # Follow redirects (urllib does this by default for GET, but be explicit)
+        opener = urllib.request.build_opener(urllib.request.HTTPRedirectHandler())
+        with opener.open(req, timeout=timeout) as r:
             ct = r.headers.get("Content-Type", "")
-            if "pdf" not in ct.lower():
-                return None
             data = r.read()
+            # Accept if Content-Type says PDF OR if bytes start with %PDF
+            if "pdf" not in ct.lower() and not data.startswith(b"%PDF"):
+                return None
             if not data.startswith(b"%PDF"):
                 return None
             return data
@@ -164,8 +168,8 @@ def download_pdf(url, timeout=30):
 
 
 def upload_pdf(component_id, pdf_bytes, filename):
-    """Upload a PDF datasheet to a component via multipart form POST."""
-    boundary = f"--kompis--{os.getpid()}--"
+    """Upload a PDF datasheet via the REST API (returns 201 on success)."""
+    boundary = f"kompis{os.getpid()}"
     body = (
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="file_type"\r\n\r\n'
@@ -175,11 +179,11 @@ def upload_pdf(component_id, pdf_bytes, filename):
         f"Content-Type: application/pdf\r\n\r\n"
     ).encode() + pdf_bytes + f"\r\n--{boundary}--\r\n".encode()
 
-    conn = http.client.HTTPConnection(BASE_HOST, BASE_PORT, timeout=30)
+    conn = http.client.HTTPConnection(BASE_HOST, BASE_PORT, timeout=60)
     try:
         conn.request(
             "POST",
-            f"/components/{component_id}/files",
+            f"/api/components/{component_id}/files",
             body=body,
             headers={
                 "Content-Type": f"multipart/form-data; boundary={boundary}",
@@ -254,7 +258,7 @@ def main():
             continue
 
         status = upload_pdf(comp_id, pdf, filename)
-        if status in (200, 201):
+        if status in (200, 201, 303):
             print(f"OK ({len(pdf)//1024} KB uppladdad)")
             uploaded.add(comp_id)
             success += 1
