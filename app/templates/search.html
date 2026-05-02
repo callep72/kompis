@@ -183,7 +183,18 @@ const _symbols = {};
   }
 })();
 
-const _SKIP = /flip.flop|vippa|\bjk\b|shift.register|counter|räknare|\blatch\b|register|comparator|komparator|\bmux\b|encoder|decoder|transceiver/i;
+const _SKIP = /flip.flop|vippa|\bjk\b|shift.register|counter|räknare|\blatch\b|register|comparator|komparator|\bmux\b|multiplexer|encoder|decoder|transceiver|selector|select/i;
+
+function _hasGate(text, gate) {
+  return new RegExp(`\\b${gate}\\b|\\b${gate}.gate\\b|\\b${gate}.grind\\b`, 'i').test(text);
+}
+
+function _gateInputs(text, gate) {
+  if (/\b4(?:[- .]?input|[- .]?ingång)/.test(text)) return 4;
+  if (/\b3(?:[- .]?input|[- .]?ingång)/.test(text)) return 3;
+  if (['nand','nor'].includes(gate) && /\btriple\b/.test(text)) return 3;
+  return 2;
+}
 
 function _componentSymbol(c) {
   // Transistors
@@ -204,19 +215,18 @@ function _componentSymbol(c) {
   if (_SKIP.test(text)) return null;
 
   let gate = null;
-  if (/\bnand\b/.test(text))                                gate = 'nand';
-  else if (/\bxnor\b/.test(text))                          gate = 'xnor';
-  else if (/\bxor\b/.test(text))                           gate = 'xor';
-  else if (/\bnor\b/.test(text))                           gate = 'nor';
-  else if (/\band gate\b|\binput and\b|\band-gate\b/.test(text)) gate = 'and';
-  else if (/\binverter\b/.test(text))            gate = 'inverter';
-  else if (/\bbuffer\b/.test(text))              gate = 'buffer';
+  if (_hasGate(text, 'nand'))      gate = 'nand';
+  else if (_hasGate(text, 'xnor')) gate = 'xnor';
+  else if (_hasGate(text, 'xor'))  gate = 'xor';
+  else if (_hasGate(text, 'nor'))  gate = 'nor';
+  else if (_hasGate(text, 'and'))  gate = 'and';
+  else if (/\binverter\b/.test(text)) gate = 'inverter';
+  else if (/\bbuffer\b/.test(text))   gate = 'buffer';
   if (!gate) return null;
 
   let inputs = 2;
   if (['and','nand','nor','xor','xnor'].includes(gate)) {
-    if (/\b4.input\b/.test(text)) inputs = 4;
-    else if (/\b3.input\b/.test(text) || (gate === 'nand' && /\btriple\b/.test(text))) inputs = 3;
+    inputs = gate === 'xnor' ? 2 : _gateInputs(text, gate);
   }
 
   const count = /\boctal\b/.test(text) ? 8 : /\bhex\b/.test(text) ? 6 :

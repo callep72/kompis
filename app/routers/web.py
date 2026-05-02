@@ -132,23 +132,39 @@ def _transistor_svg(comp) -> str | None:
 
 _SKIP = re.compile(
     r"\b(flip.flop|vippa|jk|shift.register|counter|räknare|latch|"
-    r"register|comparator|komparator|mux|encoder|decoder|transceiver)\b"
+    r"register|comparator|komparator|mux|multiplexer|encoder|decoder|"
+    r"transceiver|selector|select)\b"
 )
+
+
+def _has_gate(text: str, gate: str) -> bool:
+    return bool(re.search(rf"\b{gate}\b|\b{gate}.gate\b|\b{gate}.grind\b", text))
+
+
+def _gate_inputs(text: str, gate: str) -> int:
+    if re.search(r"\b4(?:[- .]?input|[- .]?ingång)", text):
+        return 4
+    if re.search(r"\b3(?:[- .]?input|[- .]?ingång)", text):
+        return 3
+    if gate in ("nand", "nor") and "triple" in text:
+        return 3
+    return 2
+
 
 def _logic_svg(comp) -> tuple[str | None, str | None]:
     text = " ".join([comp.name] + list(comp.tags or [])).lower()
     if _SKIP.search(text):
         return None, None
 
-    if re.search(r"\bnand\b", text):
+    if _has_gate(text, "nand"):
         gate = "nand"
-    elif re.search(r"\bxnor\b", text):
+    elif _has_gate(text, "xnor"):
         gate = "xnor"
-    elif re.search(r"\bxor\b", text):
+    elif _has_gate(text, "xor"):
         gate = "xor"
-    elif re.search(r"\bnor\b", text):
+    elif _has_gate(text, "nor"):
         gate = "nor"
-    elif re.search(r"\band gate\b|\binput and\b|\band-gate\b", text):
+    elif _has_gate(text, "and"):
         gate = "and"
     elif re.search(r"\binverter\b", text):
         gate = "inverter"
@@ -159,10 +175,7 @@ def _logic_svg(comp) -> tuple[str | None, str | None]:
 
     inputs = 2
     if gate in ("and", "nand", "nor", "xor", "xnor"):
-        if re.search(r"\b4.input\b", text):
-            inputs = 4
-        elif re.search(r"\b3.input\b", text) or (gate == "nand" and "triple" in text):
-            inputs = 3
+        inputs = 2 if gate == "xnor" else _gate_inputs(text, gate)
 
     count = (8 if "octal" in text else 6 if "hex" in text else
              4 if "quad" in text else 3 if "triple" in text else

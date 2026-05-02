@@ -16,5 +16,12 @@ Files:
 - logic_nand_2in.svg
 - logic_nand_3in.svg
 - logic_nand_4in.svg
+- logic_nor_2in.svg
+- logic_nor_3in.svg
+- logic_nor_4in.svg
+- logic_xor_2in.svg
+- logic_xor_3in.svg
+- logic_xor_4in.svg
+- logic_xnor_2in.svg
 - logic_buffer.svg
 - logic_inverter.svg
