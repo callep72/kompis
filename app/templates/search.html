@@ -1,61 +1,185 @@
 {% extends "base.html" %}
-{% block title %}Sök – KOMPIS{% endblock %}
+{% block title %}KOMPIS{% endblock %}
+
+{% block head %}
+<style>
+  .search-hero {
+    min-height: calc(100vh - 108px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem 3rem;
+    transition: min-height 0.35s ease, padding 0.35s ease;
+  }
+  .search-hero.compact {
+    min-height: unset;
+    justify-content: flex-start;
+    padding: 1.5rem 1rem 0;
+  }
+  #hero-brand {
+    text-align: center;
+    margin-bottom: 2rem;
+    transition: opacity 0.2s ease, max-height 0.35s ease;
+    max-height: 120px;
+    overflow: hidden;
+  }
+  #hero-brand.hidden {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    pointer-events: none;
+  }
+  .search-form {
+    width: 100%;
+    max-width: 680px;
+  }
+  .search-pill {
+    display: flex;
+    align-items: center;
+    background: var(--bs-body-bg);
+    border: 1.5px solid var(--bs-border-color);
+    border-radius: 9999px;
+    padding: 0.55rem 0.65rem 0.55rem 1.25rem;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .search-pill:focus-within {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+    border-color: var(--bs-primary);
+  }
+  .search-pill .si {
+    color: var(--bs-secondary-color);
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  #ask-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1rem;
+    color: var(--bs-body-color);
+    min-width: 0;
+  }
+  #ask-input::placeholder { color: var(--bs-secondary-color); }
+  .search-submit {
+    border: none;
+    background: none;
+    padding: 0.1rem 0.3rem;
+    color: var(--bs-primary);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    transition: color 0.15s;
+  }
+  .search-submit:hover { color: #0a58ca; }
+  .search-submit:disabled { color: var(--bs-secondary-color); cursor: default; }
+  .result-card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    transition: box-shadow 0.15s;
+  }
+  .result-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .specs-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.1rem 1rem;
+    font-size: 0.85rem;
+  }
+  .specs-key { color: var(--bs-secondary-color); white-space: nowrap; }
+  .specs-val { font-family: var(--bs-font-monospace); }
+  .answer-box {
+    background: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-9">
+<div id="search-hero" class="search-hero">
 
-    <h1 class="h4 mb-4"><i class="bi bi-search"></i> Sök i lagret</h1>
-
-    <form id="ask-form" class="mb-4">
-      <div class="input-group input-group-lg">
-        <input
-          id="ask-input"
-          type="text"
-          class="form-control"
-          placeholder="Vad letar du efter? T.ex. 'NPN-transistorer för 200 V' eller 'vilka nixie-drivare finns?'"
-          autocomplete="off"
-          autofocus
-        >
-        <button class="btn btn-primary" type="submit">
-          <i class="bi bi-search"></i> Sök
-        </button>
-      </div>
-    </form>
-
-    <div id="status" class="d-none text-muted mb-3">
-      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-      Frågar Claude…
+  <div id="hero-brand">
+    <div class="display-6 fw-bold text-body-emphasis mb-1">
+      <i class="bi bi-cpu"></i> KOMPIS
     </div>
-
-    <div id="results" class="d-none">
-      <div id="answer" class="mb-4 p-3 rounded border bg-body-secondary"></div>
-      <div id="component-cards" class="row g-3"></div>
-      <div id="token-usage" class="mt-3 text-muted small text-end"></div>
-    </div>
-
-    <div id="error-msg" class="d-none alert alert-danger"></div>
-
+    <p class="text-secondary mb-0">Sök naturligt i ditt komponentlager</p>
   </div>
+
+  <form id="ask-form" class="search-form">
+    <div class="search-pill">
+      <i class="bi bi-search si"></i>
+      <input
+        id="ask-input"
+        type="text"
+        placeholder="T.ex. 'NPN-transistorer för 200 V' eller 'nixie-drivare'"
+        autocomplete="off"
+        autofocus
+      >
+      <button id="search-btn" class="search-submit" type="submit" title="Sök">
+        <i class="bi bi-arrow-right-circle-fill"></i>
+      </button>
+    </div>
+  </form>
+
 </div>
 
+<div id="main-results" class="d-none" style="max-width:860px; margin:0 auto;">
+  <div id="status" class="d-none text-secondary mb-3 d-flex align-items-center gap-2">
+    <div class="spinner-border spinner-border-sm"></div>
+    <span>Frågar Claude…</span>
+  </div>
+  <div id="answer" class="answer-box mb-4 d-none"></div>
+  <div id="component-cards" class="row g-3"></div>
+  <div id="token-usage" class="mt-3 text-secondary small text-end d-none"></div>
+</div>
+
+<div id="error-msg" class="d-none alert alert-danger mt-3" style="max-width:860px; margin:0 auto;"></div>
+
 <script>
-document.getElementById('ask-form').addEventListener('submit', async function(e) {
+const form = document.getElementById('ask-form');
+const input = document.getElementById('ask-input');
+const btn = document.getElementById('search-btn');
+const hero = document.getElementById('search-hero');
+const heroBrand = document.getElementById('hero-brand');
+const mainResults = document.getElementById('main-results');
+const status = document.getElementById('status');
+const answerEl = document.getElementById('answer');
+const cardsEl = document.getElementById('component-cards');
+const tokenEl = document.getElementById('token-usage');
+const errorEl = document.getElementById('error-msg');
+
+let hasSearched = false;
+
+form.addEventListener('submit', async function(e) {
   e.preventDefault();
-  const question = document.getElementById('ask-input').value.trim();
+  const question = input.value.trim();
   if (!question) return;
 
-  const status = document.getElementById('status');
-  const results = document.getElementById('results');
-  const errorMsg = document.getElementById('error-msg');
-  const answerEl = document.getElementById('answer');
-  const cardsEl = document.getElementById('component-cards');
+  // Transition to compact mode on first search
+  if (!hasSearched) {
+    hasSearched = true;
+    heroBrand.classList.add('hidden');
+    hero.classList.add('compact');
+  }
 
-  status.classList.remove('d-none');
-  results.classList.add('d-none');
-  errorMsg.classList.add('d-none');
+  // Reset
   cardsEl.innerHTML = '';
   answerEl.innerHTML = '';
+  answerEl.classList.add('d-none');
+  tokenEl.classList.add('d-none');
+  errorEl.classList.add('d-none');
+  mainResults.classList.remove('d-none');
+  status.classList.remove('d-none');
+  btn.disabled = true;
 
   try {
     const resp = await fetch('/api/ask', {
@@ -63,110 +187,103 @@ document.getElementById('ask-form').addEventListener('submit', async function(e)
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({question}),
     });
-
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
-    }
-
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
     const data = await resp.json();
 
-    answerEl.innerHTML = formatAnswer(data.answer);
+    if (data.answer) {
+      answerEl.innerHTML = formatAnswer(data.answer);
+      answerEl.classList.remove('d-none');
+    }
 
     if (data.components && data.components.length > 0) {
-      const indexById = {};
-      data.components.forEach(c => indexById[c.id] = c);
-
-      const mentionedIds = extractMentionedIds(data.answer, data.components);
-      const orderedComponents = mentionedIds.length > 0
-        ? mentionedIds.map(id => indexById[id]).filter(Boolean)
+      const byId = {};
+      data.components.forEach(c => byId[c.id] = c);
+      const mentioned = data.components
+        .filter(c => data.answer.includes(c.name) || (c.part_number && data.answer.includes(c.part_number)))
+        .map(c => c.id);
+      const ordered = mentioned.length > 0
+        ? mentioned.map(id => byId[id]).filter(Boolean)
         : data.components;
-
-      orderedComponents.forEach(comp => {
-        cardsEl.insertAdjacentHTML('beforeend', renderCard(comp));
-      });
+      ordered.forEach(c => cardsEl.insertAdjacentHTML('beforeend', renderCard(c)));
     }
 
     if (data.usage) {
-      document.getElementById('token-usage').textContent =
-        `Tokens: ${data.usage.input_tokens.toLocaleString('sv')} in / ${data.usage.output_tokens.toLocaleString('sv')} ut`;
+      tokenEl.textContent = `Tokens: ${fmt(data.usage.input_tokens)} in / ${fmt(data.usage.output_tokens)} ut`;
+      tokenEl.classList.remove('d-none');
     }
-
-    results.classList.remove('d-none');
   } catch (err) {
-    errorMsg.textContent = 'Något gick fel: ' + err.message;
-    errorMsg.classList.remove('d-none');
+    errorEl.textContent = 'Något gick fel: ' + err.message;
+    errorEl.classList.remove('d-none');
   } finally {
     status.classList.add('d-none');
+    btn.disabled = false;
   }
 });
 
+function fmt(n) { return n.toLocaleString('sv'); }
+
 function formatAnswer(text) {
   return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/\n/g,'<br>');
 }
 
-function extractMentionedIds(answer, components) {
-  return components
-    .filter(c => answer.includes(c.name) || (c.part_number && answer.includes(c.part_number)))
-    .map(c => c.id);
-}
-
-function renderCard(comp) {
-  const datasheet = (comp.files || []).find(f => f.file_type === 'datasheet');
-  const datasheetHtml = datasheet
-    ? `<a href="/files/${datasheet.filepath}" target="_blank" class="btn btn-sm btn-outline-secondary">
-         <i class="bi bi-file-earmark-pdf text-danger"></i> Datablad
+function renderCard(c) {
+  const datasheet = (c.files || []).find(f => f.file_type === 'datasheet');
+  const pdfBtn = datasheet
+    ? `<a href="/files/${datasheet.filepath}" target="_blank"
+          class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 text-nowrap">
+         <i class="bi bi-file-earmark-pdf-fill"></i> Datablad
        </a>`
     : '';
 
-  const stockHtml = (comp.stock || []).map(s => {
-    const loc = [s.drawer, s.compartment].filter(Boolean).join(' › ');
-    return `<span class="badge bg-secondary me-1">${loc ? loc + ': ' : ''}${s.quantity} ${s.unit}</span>`;
-  }).join('') || '<span class="text-muted small">Inget lager registrerat</span>';
+  const mfr = [c.manufacturer, c.part_number].filter(Boolean).join(' · ');
 
-  const specsHtml = Object.keys(comp.specs || {}).length > 0
-    ? `<table class="table table-sm table-borderless mb-2">
-        <tbody>
-          ${Object.entries(comp.specs).map(([k, v]) =>
-            `<tr><td class="text-muted pe-3 py-0" style="width:40%">${k}</td><td class="py-0 font-monospace">${v}</td></tr>`
-          ).join('')}
-        </tbody>
-      </table>`
+  const catBadge = c.category
+    ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border">${c.category.name}</span>`
     : '';
 
-  const tagsHtml = (comp.tags || []).map(t =>
-    `<span class="badge rounded-pill bg-body-tertiary text-body-secondary border me-1">${t}</span>`
+  const specs = Object.entries(c.specs || {});
+  const specsHtml = specs.length
+    ? `<div class="specs-grid mt-2 mb-1">
+        ${specs.map(([k,v]) =>
+          `<span class="specs-key">${k}</span><span class="specs-val">${v}</span>`
+        ).join('')}
+       </div>`
+    : '';
+
+  const stockHtml = (c.stock || []).length
+    ? (c.stock || []).map(s => {
+        const loc = [s.drawer, s.compartment].filter(Boolean).join(' › ');
+        const cls = s.quantity === 0 ? 'bg-danger' : s.quantity <= s.minimum_qty && s.minimum_qty > 0 ? 'bg-warning text-dark' : 'bg-success';
+        return `<span class="badge ${cls} bg-opacity-75 me-1"><i class="bi bi-box me-1"></i>${loc ? loc + ': ' : ''}${s.quantity} ${s.unit}</span>`;
+      }).join('')
+    : `<span class="text-secondary small">Inget lager registrerat</span>`;
+
+  const tagsHtml = (c.tags || []).map(t =>
+    `<span class="badge rounded-pill bg-body-tertiary text-body-secondary border me-1 mb-1">${t}</span>`
   ).join('');
-
-  const categoryHtml = comp.category
-    ? `<span class="badge bg-info text-dark me-2">${comp.category.name}</span>`
-    : '';
-
-  const mfr = [comp.manufacturer, comp.part_number].filter(Boolean).join(' · ');
 
   return `
     <div class="col-12">
-      <div class="card">
+      <div class="card result-card">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <h5 class="card-title mb-0">
-                <a href="/components/${comp.id}" class="text-decoration-none">${comp.name}</a>
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div class="flex-grow-1 min-width-0">
+              <h5 class="mb-0 d-flex align-items-center gap-2 flex-wrap">
+                <a href="/components/${c.id}" class="text-decoration-none text-body-emphasis fw-semibold">${c.name}</a>
+                ${catBadge}
               </h5>
-              ${mfr ? `<small class="text-muted">${mfr}</small>` : ''}
+              ${mfr ? `<div class="text-secondary small mt-1">${mfr}</div>` : ''}
             </div>
-            <div class="text-end">
-              ${categoryHtml}
-              ${datasheetHtml}
-            </div>
+            ${pdfBtn ? `<div class="flex-shrink-0">${pdfBtn}</div>` : ''}
           </div>
-          ${comp.description ? `<p class="card-text text-muted small mb-2">${comp.description}</p>` : ''}
+          ${c.description ? `<p class="text-secondary small mt-2 mb-1">${c.description}</p>` : ''}
           ${specsHtml}
-          <div class="mb-1">${stockHtml}</div>
+          <div class="mt-2">${stockHtml}</div>
           ${tagsHtml ? `<div class="mt-2">${tagsHtml}</div>` : ''}
         </div>
       </div>

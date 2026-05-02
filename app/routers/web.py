@@ -18,7 +18,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 # --- Search ---
 
-@router.get("/search", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 def search(request: Request):
     return templates.TemplateResponse("search.html", {
         "request": request,
@@ -26,9 +26,9 @@ def search(request: Request):
     })
 
 
-# --- Components ---
+# --- Admin / Components ---
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/admin", response_class=HTMLResponse)
 def index(
     request: Request,
     q: Optional[str] = None,
@@ -85,7 +85,7 @@ async def create_component_post(
 def component_detail(request: Request, component_id: int, db: Session = Depends(get_db)):
     comp = component_service.get_by_id(db, component_id)
     if not comp:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/admin", status_code=303)
     return templates.TemplateResponse("components/detail.html", {
         "request": request, "component": comp, "active_page": "components",
     })
@@ -95,7 +95,7 @@ def component_detail(request: Request, component_id: int, db: Session = Depends(
 def edit_component_form(request: Request, component_id: int, db: Session = Depends(get_db)):
     comp = component_service.get_by_id(db, component_id)
     if not comp:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/admin", status_code=303)
     categories = category_service.get_all(db)
     return templates.TemplateResponse("components/form.html", {
         "request": request, "component": comp, "categories": categories,
@@ -125,7 +125,7 @@ async def update_component_post(request: Request, component_id: int, db: Session
 @router.post("/components/{component_id}/delete")
 def delete_component_post(component_id: int, db: Session = Depends(get_db)):
     component_service.delete(db, component_id)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/admin", status_code=303)
 
 
 @router.post("/components/{component_id}/files")
@@ -317,7 +317,7 @@ async def create_stock_post(request: Request, db: Session = Depends(get_db)):
 def edit_stock_form(request: Request, stock_id: int, db: Session = Depends(get_db)):
     s = stock_service.get_by_id(db, stock_id)
     if not s:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/admin", status_code=303)
     return templates.TemplateResponse("stock/form.html", {
         "request": request, "stock": s, "components": [], "compartments": [],
         "selected_component_id": None, "active_page": "stock",
@@ -337,7 +337,7 @@ async def update_stock_post(request: Request, stock_id: int, db: Session = Depen
     component_id = s.component_id if s else None
     if component_id:
         return RedirectResponse(f"/components/{component_id}", status_code=303)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/admin", status_code=303)
 
 
 # --- Helpers ---
