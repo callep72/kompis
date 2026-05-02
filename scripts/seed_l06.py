@@ -1093,24 +1093,36 @@ def main():
 
     print(f"  {len(compartment_ids)} fack redo")
 
-    # 5. Create unique components (skip duplicates already created)
-    print(f"\nSkapar komponenter...")
+    # 5. Create unique components (idempotent: reuse existing if name matches)
+    print(f"\nSkapar komponenter (hoppar över befintliga)...")
     created_components = {}  # key → component_id
 
     for fack_num, comp_key in LAYOUT:
         if comp_key in created_components:
-            continue  # already created this component
+            continue
 
         if comp_key not in COMPONENTS:
             print(f"  VARNING: Ingen komponentdata för nyckel '{comp_key}'", file=sys.stderr)
             continue
 
         comp_data = COMPONENTS[comp_key]
+        target_name = comp_data["name"]
+
+        # Check if component already exists by exact name search
+        import urllib.parse
+        existing = api_get(f"/api/components?q={urllib.parse.quote(target_name)}&limit=10")
+        if existing:
+            match = next((c for c in existing if c["name"].lower() == target_name.lower()), None)
+            if match:
+                created_components[comp_key] = match["id"]
+                print(f"  [{match['id']:4d}] {target_name} (finns redan)")
+                continue
+
         cat_id = find_category(categories, comp_data["cat_hint"])
         specs = {k: v for k, v in (comp_data.get("specs") or {}).items() if k != "manufacturer"}
 
         payload = {
-            "name": comp_data["name"],
+            "name": target_name,
             "description": comp_data.get("desc"),
             "category_id": cat_id,
             "manufacturer": comp_data["specs"].get("manufacturer"),
@@ -1122,11 +1134,11 @@ def main():
         result, status = api_post("/api/components", payload)
         if result:
             created_components[comp_key] = result["id"]
-            print(f"  [{result['id']:4d}] {comp_data['name']}")
+            print(f"  [{result['id']:4d}] {target_name} (ny)")
         else:
-            print(f"  FEL: Skapade inte '{comp_data['name']}' (status={status})", file=sys.stderr)
+            print(f"  FEL: Skapade inte '{target_name}' (status={status})", file=sys.stderr)
 
-    print(f"  {len(created_components)} unika komponenter skapade")
+    print(f"  {len(created_components)} komponenter redo")
 
     # 6. Create stock entries
     print(f"\nSkapar lagerplatser...")
