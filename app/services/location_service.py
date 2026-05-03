@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
-from app.models.models import Drawer, Compartment
+from app.models.models import Drawer, Compartment, Stock, Component
 from app.schemas.schemas import DrawerCreate, CompartmentCreate, CompartmentUpdate
 
 
@@ -10,7 +10,12 @@ def get_all_drawers(db: Session) -> list[Drawer]:
 def get_drawer(db: Session, drawer_id: int) -> Drawer | None:
     return (
         db.query(Drawer)
-        .options(joinedload(Drawer.compartments))
+        .options(
+            joinedload(Drawer.compartments)
+                .joinedload(Compartment.stock)
+                .joinedload(Stock.component),
+            joinedload(Drawer.files),
+        )
         .filter(Drawer.id == drawer_id)
         .first()
     )

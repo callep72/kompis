@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.config import settings
-from app.models.models import Component, Stock, Compartment
+from app.models.models import Component, Stock, Compartment, Drawer
 from app.services import category_service
 
 router = APIRouter(tags=["ask"])
@@ -25,7 +25,11 @@ SYSTEM_PROMPT = (
     "  Välj kolumner relevanta för frågan (t.ex. Modell | Typ | Vceo | Ic max | Paket | Lagerplats). "
     "  Avsluta med kommentarer om urval, datablad och rekommendationer.\n"
     "- Vid 1–2 träffar: beskriv komponenterna direkt utan tabell.\n"
-    "- Nämn alltid om en komponent har datablad tillgängligt."
+    "- Nämn alltid om en komponent har datablad tillgängligt.\n\n"
+    "Platsfrågor:\n"
+    "- För frågor om lådor (t.ex. 'vad finns i L21?' eller 'visa L21') → använd search_by_location med drawer='L21'.\n"
+    "- För frågor om specifika fack (t.ex. 'vad är i F0128?') → använd search_by_location med compartment='F0128'.\n"
+    "- Presentera lådinnehåll som en tabell: Fack | Komponent | Antal."
 )
 
 TOOLS = [
@@ -64,6 +68,22 @@ TOOLS = [
         "description": "Lista alla komponentkategorier med ID, namn, slug och parent_id. Använd ID:n med search_components för att filtrera.",
         "input_schema": {"type": "object", "properties": {}},
     },
+    {
+        "name": "search_by_location",
+        "description": (
+            "Hitta komponenter på en specifik plats. "
+            "Ange antingen en låda (t.ex. 'L21') eller ett fack (t.ex. 'F0128'). "
+            "Lådfrågor returnerar en kompakt lista med alla fack och komponenter. "
+            "Fackfrågor returnerar full komponentinfo."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "drawer":      {"type": "string", "description": "Lådetikett, t.ex. 'L21'. Returnerar alla komponenter i lådan."},
+                "compartment": {"type": "string", "description": "Facketikett, t.ex. 'F0128'. Returnerar komponenten i det facket."},
+            },
+        },
+    },
 ]
 
 
@@ -79,6 +99,7 @@ class TokenUsage(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     components: list[dict]
+    drawers: list[dict]
     usage: TokenUsage
 
 
@@ -189,10 +210,25 @@ def _get_component_with_files(db: Session, component_id: int) -> Component | Non
     )
 
 
+def _serialize_drawer(drawer: Drawer, compartments_data: list[dict]) -> dict:
+    photos = [
+        {"filepath": f.filepath, "filename": f.filename, "id": f.id}
+        for f in (drawer.files or []) if f.file_type == "image"
+    ]
+    return {
+        "id": drawer.id,
+        "label": drawer.label,
+        "description": drawer.description,
+        "photos": photos,
+        "compartments": compartments_data,
+    }
+
+
 @router.post("/api/ask", response_model=AskResponse)
 def ask(body: AskRequest, db: Session = Depends(get_db)):
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
     components_found: dict[int, dict] = {}
+    drawers_found: dict[int, dict] = {}
 
     def call_tool(name: str, inputs: dict):
         if name == "search_components":
@@ -220,6 +256,60 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
         if name == "list_categories":
             cats = category_service.get_all(db)
             return [{"id": c.id, "name": c.name, "slug": c.slug, "parent_id": c.parent_id} for c in cats]
+
+        if name == "search_by_location":
+            drawer_label = (inputs.get("drawer") or "").upper().strip()
+            compartment_label = (inputs.get("compartment") or "").upper().strip()
+
+            if compartment_label:
+                comp_obj = db.query(Compartment).filter(Compartment.label == compartment_label).first()
+                if not comp_obj:
+                    return {"error": f"Fack {compartment_label} hittades inte"}
+                results = []
+                for s in db.query(Stock).filter(Stock.compartment_id == comp_obj.id).all():
+                    c = _get_component_with_files(db, s.component_id)
+                    if c:
+                        ser = _serialize(c)
+                        components_found[ser["id"]] = ser
+                        results.append(ser)
+                drawer_label_str = comp_obj.drawer.label if comp_obj.drawer else "?"
+                return {"compartment": compartment_label, "drawer": drawer_label_str, "components": results}
+
+            if drawer_label:
+                drawer = (
+                    db.query(Drawer)
+                    .options(
+                        joinedload(Drawer.compartments)
+                            .joinedload(Compartment.stock)
+                            .joinedload(Stock.component),
+                        joinedload(Drawer.files),
+                    )
+                    .filter(Drawer.label == drawer_label)
+                    .first()
+                )
+                if not drawer:
+                    return {"error": f"Låda {drawer_label} hittades inte"}
+                compartments_data = []
+                for comp_obj in sorted(drawer.compartments, key=lambda c: c.label):
+                    if not comp_obj.active:
+                        continue
+                    for s in comp_obj.stock:
+                        if s.component and s.component.active:
+                            compartments_data.append({
+                                "label": comp_obj.label,
+                                "component_id": s.component.id,
+                                "component_name": s.component.name,
+                                "quantity": s.quantity,
+                                "unit": s.unit,
+                            })
+                            comp_full = _get_component_with_files(db, s.component.id)
+                            if comp_full:
+                                components_found[comp_full.id] = _serialize(comp_full)
+                result = _serialize_drawer(drawer, compartments_data)
+                drawers_found[drawer.id] = result
+                return result
+
+            return {"error": "Ange 'drawer' (t.ex. 'L21') eller 'compartment' (t.ex. 'F0128')"}
 
         return {"error": f"Okänt verktyg: {name}"}
 
@@ -260,5 +350,6 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
     return AskResponse(
         answer=answer,
         components=list(components_found.values()),
+        drawers=list(drawers_found.values()),
         usage=TokenUsage(input_tokens=total_input_tokens, output_tokens=total_output_tokens),
     )

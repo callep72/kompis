@@ -65,6 +65,51 @@ async def save_upload(db: Session, component_id: int, file: UploadFile, file_typ
     return db_file
 
 
+async def save_drawer_upload(db: Session, drawer_id: int, file: UploadFile, file_type: str) -> File:
+    if file.content_type not in ALLOWED_MIME:
+        raise HTTPException(status_code=415, detail=f"Filtyp ej tillåten: {file.content_type}")
+
+    dest_dir = os.path.join(settings.file_storage_path, "drawers", str(drawer_id))
+    os.makedirs(dest_dir, exist_ok=True)
+
+    dest_path = os.path.join(dest_dir, file.filename)
+    base, ext = os.path.splitext(file.filename)
+    counter = 1
+    while os.path.exists(dest_path):
+        dest_path = os.path.join(dest_dir, f"{base}_{counter}{ext}")
+        counter += 1
+
+    written = 0
+    with open(dest_path, "wb") as out:
+        while chunk := await file.read(1024 * 1024):
+            written += len(chunk)
+            if written > MAX_BYTES:
+                out.close()
+                os.remove(dest_path)
+                raise HTTPException(status_code=413, detail="Filen är större än 50 MB")
+            out.write(chunk)
+
+    rel_path = os.path.relpath(dest_path, settings.file_storage_path)
+    is_primary = file_type == "image" and not db.query(File).filter(
+        File.drawer_id == drawer_id, File.file_type == "image", File.is_primary == True
+    ).first()
+
+    db_file = File(
+        drawer_id=drawer_id,
+        component_id=None,
+        file_type=file_type,
+        source="upload",
+        filename=os.path.basename(dest_path),
+        filepath=rel_path,
+        mime_type=file.content_type,
+        is_primary=is_primary,
+    )
+    db.add(db_file)
+    db.commit()
+    db.refresh(db_file)
+    return db_file
+
+
 def delete_file(db: Session, file_id: int) -> bool:
     f = db.query(File).filter(File.id == file_id).first()
     if not f:

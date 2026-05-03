@@ -255,6 +255,22 @@ def locations(request: Request, db: Session = Depends(get_db)):
     })
 
 
+@router.post("/locations/drawers/{drawer_id}/files")
+async def upload_drawer_file_post(request: Request, drawer_id: int, db: Session = Depends(get_db)):
+    form = await request.form()
+    uploaded = form.get("file")
+    file_type = form.get("file_type", "image")
+    if uploaded:
+        await file_service.save_drawer_upload(db, drawer_id, uploaded, file_type)
+    return RedirectResponse(f"/locations/drawers/{drawer_id}", status_code=303)
+
+
+@router.post("/locations/drawers/{drawer_id}/files/{file_id}/delete")
+def delete_drawer_file_post(drawer_id: int, file_id: int, db: Session = Depends(get_db)):
+    file_service.delete_file(db, file_id)
+    return RedirectResponse(f"/locations/drawers/{drawer_id}", status_code=303)
+
+
 @router.get("/locations/drawers/new", response_class=HTMLResponse)
 def new_drawer_form(request: Request):
     return templates.TemplateResponse("locations/drawer_form.html", {

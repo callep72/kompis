@@ -19,6 +19,7 @@ class Drawer(Base):
     description = Column(Text)
 
     compartments = relationship("Compartment", back_populates="drawer")
+    files = relationship("File", back_populates="drawer", foreign_keys="File.drawer_id")
 
 
 class Compartment(Base):
@@ -87,7 +88,8 @@ class File(Base):
     __tablename__ = "files"
 
     id = Column(Integer, primary_key=True)
-    component_id = Column(Integer, ForeignKey("components.id"), nullable=False)
+    component_id = Column(Integer, ForeignKey("components.id"), nullable=True)
+    drawer_id = Column(Integer, ForeignKey("drawers.id"), nullable=True)
     file_type = Column(String(20))
     source = Column(String(20), default="upload", nullable=False)
     filename = Column(String(255), nullable=False)
@@ -96,4 +98,5 @@ class File(Base):
     is_primary = Column(Boolean, default=False, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
 
-    component = relationship("Component", back_populates="files")
+    component = relationship("Component", back_populates="files", foreign_keys=[component_id])
+    drawer = relationship("Drawer", back_populates="files", foreign_keys=[drawer_id])

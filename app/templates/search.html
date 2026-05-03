@@ -315,6 +315,12 @@ form.addEventListener('submit', async function(e) {
       answerEl.classList.remove('d-none');
     }
 
+    if (data.drawers && data.drawers.length > 0) {
+      for (const d of data.drawers) {
+        cardsEl.insertAdjacentHTML('beforeend', renderDrawerCard(d));
+      }
+    }
+
     if (data.components && data.components.length > 0) {
       const byId = {};
       data.components.forEach(c => byId[c.id] = c);
@@ -422,6 +428,45 @@ function linkTableRows(components) {
       });
     }
   });
+}
+
+function renderDrawerCard(d) {
+  const photoHtml = d.photos && d.photos.length > 0
+    ? `<img src="/files/${d.photos[0].filepath}" class="img-fluid rounded mb-3"
+            style="max-height:260px;width:100%;object-fit:cover" alt="Foto ${d.label}">`
+    : '';
+
+  const rows = (d.compartments || []).map(c => `
+    <tr style="cursor:pointer" onclick="window.location='/components/${c.component_id}'">
+      <td class="font-monospace fw-semibold py-1">${c.label}</td>
+      <td class="py-1">${c.component_name}</td>
+      <td class="py-1 text-secondary">${c.quantity} ${c.unit}</td>
+    </tr>`).join('');
+
+  const tableHtml = rows
+    ? `<div style="max-height:360px;overflow-y:auto">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light sticky-top">
+            <tr><th>Fack</th><th>Komponent</th><th>Antal</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+       </div>`
+    : '<p class="text-secondary small mb-0">Inga komponenter registrerade.</p>';
+
+  return `
+    <div class="col-12">
+      <div class="card result-card">
+        <div class="card-body">
+          <h5 class="fw-semibold mb-1">
+            <i class="bi bi-box me-1"></i>${d.label}
+            ${d.description ? `<span class="text-secondary fw-normal fs-6 ms-2">${d.description}</span>` : ''}
+          </h5>
+          ${photoHtml}
+          ${tableHtml}
+        </div>
+      </div>
+    </div>`;
 }
 
 function _packageValue(c) {
