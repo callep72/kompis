@@ -307,12 +307,14 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
                         continue
                     for s in comp_obj.stock:
                         if s.component and s.component.active:
+                            desc = (s.component.description or "")
                             compartments_data.append({
                                 "label": comp_obj.label,
                                 "component_id": s.component.id,
                                 "component_name": s.component.name,
                                 "quantity": s.quantity,
                                 "unit": s.unit,
+                                "description": desc[:60] + "…" if len(desc) > 60 else desc,
                             })
                 result = _serialize_drawer(drawer, compartments_data)
                 drawers_found[drawer.id] = result
