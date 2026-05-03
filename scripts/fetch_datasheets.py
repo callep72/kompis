@@ -131,6 +131,25 @@ DATASHEETS = [
     # --- Vintage / Special (MOS Technology archive) ---
     ("MOS 6561 (VIC)", "https://archive.6502.org/datasheets/mos_6560_6561_vic.pdf", "MOS6561_VIC.pdf"),
 
+    # --- Transistorer L05 nya (ON Semiconductor / ST) ---
+    ("MJ2955",    "https://www.onsemi.com/download/data-sheet/pdf/mj2955-d.pdf",    "MJ2955.pdf"),
+    ("MJ15003",   "https://www.onsemi.com/pdf/datasheet/mj15003-d.pdf",             "MJ15003.pdf"),
+    ("MJ15004",   "https://www.onsemi.com/download/data-sheet/pdf/mj15004-d.pdf",   "MJ15004.pdf"),
+    ("MJ3001",    "https://www.onsemi.com/download/data-sheet/pdf/mj3001-d.pdf",    "MJ3001.pdf"),
+    ("MJ4030",    "https://www.onsemi.com/download/data-sheet/pdf/mj4032-d.pdf",    "MJ4030.pdf"),
+    ("2N3773",    "https://www.onsemi.com/pdf/datasheet/2n3773-d.pdf",              "2N3773.pdf"),
+    ("2N3772",    "https://www.onsemi.com/download/data-sheet/pdf/2n3772-d.pdf",    "2N3772.pdf"),
+    ("2N3054",    "https://www.onsemi.com/download/data-sheet/pdf/2n3054-d.pdf",    "2N3054.pdf"),
+    ("2N5886",    "https://www.onsemi.com/download/data-sheet/pdf/2n5886-d.pdf",    "2N5886.pdf"),
+    ("2N3741",    "https://www.onsemi.com/download/data-sheet/pdf/2n3741-d.pdf",    "2N3741.pdf"),
+    ("2N2907A",   "https://www.onsemi.com/pdf/datasheet/p2n2907a-d.pdf",            "2N2907A.pdf"),
+    ("TIP33",     "https://www.onsemi.com/download/data-sheet/pdf/tip33a-d.pdf",    "TIP33A.pdf"),
+    ("TIP35C",    "https://www.onsemi.com/download/data-sheet/pdf/tip35a-d.pdf",    "TIP35_36.pdf"),
+    ("TIP36C",    "https://www.onsemi.com/download/data-sheet/pdf/tip35a-d.pdf",    "TIP35_36.pdf"),
+    ("TIP140",    "https://www.onsemi.com/pdf/datasheet/tip140-d.pdf",              "TIP140.pdf"),
+    ("BC141-10",  "https://www.onsemi.com/pdf/datasheet/bc141-d.pdf",              "BC141.pdf"),
+    ("MC1455G",   "https://www.ti.com/lit/ds/symlink/ne555.pdf",                    "NE555.pdf"),
+
     # --- Spänningsregulatorer ---
     ("78L05",    "https://www.st.com/resource/en/datasheet/l78l.pdf",              "L78L.pdf"),
     ("L7805CV",  "https://www.st.com/resource/en/datasheet/l78.pdf",               "L78_7805.pdf"),
