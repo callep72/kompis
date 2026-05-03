@@ -540,8 +540,10 @@ document.addEventListener('click', async e => {
 
 function renderDrawerCard(d) {
   const photoHtml = d.photos && d.photos.length > 0
-    ? `<img src="/files/${d.photos[0].filepath}" class="img-fluid rounded mb-3"
-            style="width:100%;height:auto" alt="Foto ${d.label}">`
+    ? `<a href="/files/${d.photos[0].filepath}" target="_blank">
+         <img src="/files/${d.photos[0].filepath}" class="img-fluid rounded mb-3"
+              style="width:100%;height:auto;cursor:zoom-in" alt="Foto ${d.label}">
+       </a>`
     : '';
 
   const detailId = `drawer-detail-${d.id}`;
