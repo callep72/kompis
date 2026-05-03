@@ -24,3 +24,9 @@
     height: 100%;
     display: block;
 }
+
+.result-card, .result-card .card-body {
+    overflow: visible;
+    height: auto;
+    max-height: none;
+}
