@@ -165,6 +165,13 @@
         <i class="bi bi-arrow-right-circle-fill"></i>
       </button>
     </div>
+    <div id="conv-indicator" class="d-none text-center mt-2 small text-secondary">
+      <i class="bi bi-chat-dots me-1"></i>Konversation pågår –
+      <button type="button" onclick="resetConversation()"
+              class="btn btn-link btn-sm p-0 text-secondary text-decoration-underline">
+        börja om
+      </button>
+    </div>
   </form>
 
 </div>
@@ -303,6 +310,19 @@ const tokenEl = document.getElementById('token-usage');
 const errorEl = document.getElementById('error-msg');
 
 let hasSearched = false;
+let conversationHistory = [];
+
+function resetConversation() {
+  conversationHistory = [];
+  document.getElementById('conv-indicator').classList.add('d-none');
+  cardsEl.innerHTML = '';
+  answerEl.innerHTML = '';
+  answerEl.classList.add('d-none');
+  tokenEl.classList.add('d-none');
+  mainResults.classList.add('d-none');
+  input.value = '';
+  input.focus();
+}
 
 function _goCompact() {
   if (!hasSearched) {
@@ -365,7 +385,7 @@ form.addEventListener('submit', async function(e) {
     const resp = await fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question}),
+      body: JSON.stringify({question, history: conversationHistory}),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
     const data = await resp.json();
@@ -400,6 +420,12 @@ form.addEventListener('submit', async function(e) {
       tokenEl.textContent = `Tokens: ${fmt(data.usage.input_tokens)} in / ${fmt(data.usage.output_tokens)} ut`;
       tokenEl.classList.remove('d-none');
     }
+
+    // Append to conversation history
+    conversationHistory.push({role: 'user', content: question});
+    if (data.answer) conversationHistory.push({role: 'assistant', content: data.answer});
+    document.getElementById('conv-indicator').classList.remove('d-none');
+
   } catch (err) {
     errorEl.textContent = 'Något gick fel: ' + err.message;
     errorEl.classList.remove('d-none');

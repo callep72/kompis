@@ -91,6 +91,7 @@ TOOLS = [
 
 class AskRequest(BaseModel):
     question: str
+    history: list[dict] = []
 
 
 class TokenUsage(BaseModel):
@@ -417,7 +418,8 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
 
         return {"error": f"Okänt verktyg: {name}"}
 
-    messages = [{"role": "user", "content": body.question}]
+    messages = [{"role": h["role"], "content": h["content"]} for h in body.history]
+    messages.append({"role": "user", "content": body.question})
     total_input_tokens = 0
     total_output_tokens = 0
 
