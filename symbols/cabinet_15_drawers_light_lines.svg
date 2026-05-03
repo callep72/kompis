@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200" role="img" aria-label="Monochrome line art SVG of a cabinet with 15 drawers">
+  <title>Cabinet with 15 drawers - light line art</title>
+  <desc>Transparent-background monochrome vector drawing of a tall cabinet with exactly 15 horizontal drawers.</desc>
+  <defs>
+    <style><![CDATA[
+      .line { fill: none; stroke: #e8e8e8; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .thin { fill: none; stroke: #e8e8e8; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .cap { fill: none; stroke: #e8e8e8; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+    ]]></style>
+  </defs>
+
+  <!-- Outer cabinet frame -->
+  <path class="cap" d="M105 75 Q105 55 125 55 H775 Q795 55 795 75 V105 H105 Z"/>
+  <rect class="line" x="105" y="105" width="690" height="1030"/>
+  <line class="line" x1="135" y1="105" x2="135" y2="1135"/>
+  <line class="line" x1="765" y1="105" x2="765" y2="1135"/>
+
+  <!-- Drawer fronts: 15 evenly spaced drawers -->
+  <g id="drawers">
+    <rect class="thin" x="135" y="105.0" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="140.0" x2="765" y2="140.0"/>
+
+    <rect class="thin" x="135" y="173.7" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="208.7" x2="765" y2="208.7"/>
+
+    <rect class="thin" x="135" y="242.3" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="277.3" x2="765" y2="277.3"/>
+
+    <rect class="thin" x="135" y="311.0" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="346.0" x2="765" y2="346.0"/>
+
+    <rect class="thin" x="135" y="379.7" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="414.7" x2="765" y2="414.7"/>
+
+    <rect class="thin" x="135" y="448.3" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="483.3" x2="765" y2="483.3"/>
+
+    <rect class="thin" x="135" y="517.0" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="552.0" x2="765" y2="552.0"/>
+
+    <rect class="thin" x="135" y="585.7" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="620.7" x2="765" y2="620.7"/>
+
+    <rect class="thin" x="135" y="654.3" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="689.3" x2="765" y2="689.3"/>
+
+    <rect class="thin" x="135" y="723.0" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="758.0" x2="765" y2="758.0"/>
+
+    <rect class="thin" x="135" y="791.7" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="826.7" x2="765" y2="826.7"/>
+
+    <rect class="thin" x="135" y="860.3" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="895.3" x2="765" y2="895.3"/>
+
+    <rect class="thin" x="135" y="929.0" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="964.0" x2="765" y2="964.0"/>
+
+    <rect class="thin" x="135" y="997.7" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="1032.7" x2="765" y2="1032.7"/>
+
+    <rect class="thin" x="135" y="1066.3" width="630" height="68.7"/>
+    <line class="thin" x1="135" y1="1101.3" x2="765" y2="1101.3"/>
+  </g>
+</svg>
