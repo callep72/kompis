@@ -246,6 +246,76 @@ def _serialize_drawer(drawer: Drawer, compartments_data: list[dict]) -> dict:
 
 from fastapi import HTTPException
 
+@router.get("/api/drawers-overview")
+def drawers_overview(db: Session = Depends(get_db)):
+    from app.models.models import Category
+    drawers = (
+        db.query(Drawer)
+        .options(
+            joinedload(Drawer.compartments)
+                .joinedload(Compartment.stock)
+                .joinedload(Stock.component)
+                .joinedload(Component.category),
+            joinedload(Drawer.files),
+        )
+        .order_by(Drawer.label)
+        .all()
+    )
+    result = []
+    for d in drawers:
+        cats: set[str] = set()
+        count = 0
+        for comp_obj in d.compartments:
+            for s in comp_obj.stock:
+                if s.component and s.component.active:
+                    count += 1
+                    if s.component.category:
+                        cats.add(s.component.category.name)
+        content = ", ".join(sorted(cats)) if cats else (d.description or "–")
+        photo = next((f.filepath for f in d.files if f.file_type == "image"), None)
+        result.append({
+            "id": d.id,
+            "label": d.label,
+            "description": d.description,
+            "content_summary": content,
+            "component_count": count,
+            "photo": photo,
+        })
+    return result
+
+
+@router.get("/api/drawers/{drawer_label}/summary")
+def drawer_summary(drawer_label: str, db: Session = Depends(get_db)):
+    drawer = (
+        db.query(Drawer)
+        .options(
+            joinedload(Drawer.compartments)
+                .joinedload(Compartment.stock)
+                .joinedload(Stock.component),
+            joinedload(Drawer.files),
+        )
+        .filter(Drawer.label == drawer_label.upper())
+        .first()
+    )
+    if not drawer:
+        raise HTTPException(status_code=404, detail="Låda hittades inte")
+    compartments_data = []
+    for comp_obj in sorted(drawer.compartments, key=lambda c: c.label):
+        if not comp_obj.active:
+            continue
+        for s in comp_obj.stock:
+            if s.component and s.component.active:
+                compartments_data.append({
+                    "label": comp_obj.label,
+                    "component_id": s.component.id,
+                    "component_name": s.component.name,
+                    "quantity": s.quantity,
+                    "unit": s.unit,
+                    "description": _short_desc(s.component),
+                })
+    return _serialize_drawer(drawer, compartments_data)
+
+
 @router.get("/api/components/{component_id}/card")
 def get_component_card(component_id: int, db: Session = Depends(get_db)):
     comp = _get_component_with_files(db, component_id)
