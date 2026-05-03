@@ -30,6 +30,7 @@
                     <th>Fack</th>
                     <th>Komponent</th>
                     <th>Beskrivning</th>
+                    <th></th>
                     <th class="text-end">Åtgärder</th>
                 </tr>
             </thead>
@@ -53,6 +54,16 @@
                              ('Vceo ' ~ sp.get('Vceo','')) if sp.get('Vceo') else '',
                              sp.get('Vout',''), sp.get('Vcc',''), sp.get('package','')] | select | list %}
                           {{ parts | join(', ') | truncate(60, True, '…') }}
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td class="text-center">
+                        {% for s in comp.stock %}
+                        {% set ds = s.component.files | selectattr("file_type", "eq", "datasheet") | list %}
+                        {% if ds %}
+                        <a href="/files/{{ ds[0].filepath }}" target="_blank" class="text-danger" title="Datablad">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        </a>
                         {% endif %}
                         {% endfor %}
                     </td>

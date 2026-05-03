@@ -13,7 +13,8 @@ def get_drawer(db: Session, drawer_id: int) -> Drawer | None:
         .options(
             joinedload(Drawer.compartments)
                 .joinedload(Compartment.stock)
-                .joinedload(Stock.component),
+                .joinedload(Stock.component)
+                .joinedload(Component.files),
             joinedload(Drawer.files),
         )
         .filter(Drawer.id == drawer_id)

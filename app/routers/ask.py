@@ -291,7 +291,8 @@ def drawer_summary(drawer_label: str, db: Session = Depends(get_db)):
         .options(
             joinedload(Drawer.compartments)
                 .joinedload(Compartment.stock)
-                .joinedload(Stock.component),
+                .joinedload(Stock.component)
+                .joinedload(Component.files),
             joinedload(Drawer.files),
         )
         .filter(Drawer.label == drawer_label.upper())
@@ -305,6 +306,7 @@ def drawer_summary(drawer_label: str, db: Session = Depends(get_db)):
             continue
         for s in comp_obj.stock:
             if s.component and s.component.active:
+                ds = next((f.filepath for f in s.component.files if f.file_type == "datasheet"), None)
                 compartments_data.append({
                     "label": comp_obj.label,
                     "component_id": s.component.id,
@@ -312,6 +314,7 @@ def drawer_summary(drawer_label: str, db: Session = Depends(get_db)):
                     "quantity": s.quantity,
                     "unit": s.unit,
                     "description": _short_desc(s.component),
+                    "datasheet_path": ds,
                 })
     return _serialize_drawer(drawer, compartments_data)
 
@@ -381,7 +384,8 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
                     .options(
                         joinedload(Drawer.compartments)
                             .joinedload(Compartment.stock)
-                            .joinedload(Stock.component),
+                            .joinedload(Stock.component)
+                            .joinedload(Component.files),
                         joinedload(Drawer.files),
                     )
                     .filter(Drawer.label == drawer_label)
@@ -395,6 +399,7 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
                         continue
                     for s in comp_obj.stock:
                         if s.component and s.component.active:
+                            ds = next((f.filepath for f in s.component.files if f.file_type == "datasheet"), None)
                             compartments_data.append({
                                 "label": comp_obj.label,
                                 "component_id": s.component.id,
@@ -402,6 +407,7 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
                                 "quantity": s.quantity,
                                 "unit": s.unit,
                                 "description": _short_desc(s.component),
+                                "datasheet_path": ds,
                             })
                 result = _serialize_drawer(drawer, compartments_data)
                 drawers_found[drawer.id] = result

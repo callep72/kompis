@@ -546,18 +546,27 @@ function renderDrawerCard(d) {
 
   const detailId = `drawer-detail-${d.id}`;
 
-  const rows = (d.compartments || []).map(c => `
+  const rows = (d.compartments || []).map(c => {
+    const dsIcon = c.datasheet_path
+      ? `<a href="/files/${c.datasheet_path}" target="_blank" onclick="event.stopPropagation()"
+            class="text-danger" title="Datablad">
+           <i class="bi bi-file-earmark-pdf-fill"></i>
+         </a>`
+      : '';
+    return `
     <tr class="drawer-comp-row" style="cursor:pointer"
         data-component-id="${c.component_id}" data-detail="${detailId}">
       <td class="font-monospace fw-semibold py-1">${c.label}</td>
       <td class="py-1">${c.component_name}</td>
       <td class="py-1 small">${c.description || ''}</td>
-    </tr>`).join('');
+      <td class="py-1 text-end">${dsIcon}</td>
+    </tr>`;
+  }).join('');
 
   const tableHtml = rows
     ? `<table class="table table-sm table-hover mb-0">
         <thead class="table-light">
-          <tr><th>Fack</th><th>Komponent</th><th>Beskrivning</th></tr>
+          <tr><th>Fack</th><th>Komponent</th><th>Beskrivning</th><th></th></tr>
         </thead>
         <tbody>${rows}</tbody>
        </table>`
