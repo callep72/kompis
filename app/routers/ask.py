@@ -212,6 +212,24 @@ def _get_component_with_files(db: Session, component_id: int) -> Component | Non
     )
 
 
+def _short_desc(component) -> str:
+    desc = (component.description or "").strip()
+    if desc:
+        return desc[:60] + "…" if len(desc) > 60 else desc
+    specs = component.specs or {}
+    parts = [v for k, v in [
+        ("type",       specs.get("type", "")),
+        ("material",   specs.get("material", "")),
+        ("technology", specs.get("technology", "")),
+        ("Vceo",       f"Vceo {specs['Vceo']}" if specs.get("Vceo") else ""),
+        ("Vout",       specs.get("Vout", "")),
+        ("Iout_max",   specs.get("Iout_max", "")),
+        ("Vcc",        specs.get("Vcc", "")),
+        ("package",    specs.get("package", "")),
+    ] if v]
+    return ", ".join(parts)[:60]
+
+
 def _serialize_drawer(drawer: Drawer, compartments_data: list[dict]) -> dict:
     photos = [
         {"filepath": f.filepath, "filename": f.filename, "id": f.id}
@@ -307,14 +325,13 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
                         continue
                     for s in comp_obj.stock:
                         if s.component and s.component.active:
-                            desc = (s.component.description or "")
                             compartments_data.append({
                                 "label": comp_obj.label,
                                 "component_id": s.component.id,
                                 "component_name": s.component.name,
                                 "quantity": s.quantity,
                                 "unit": s.unit,
-                                "description": desc[:60] + "…" if len(desc) > 60 else desc,
+                                "description": _short_desc(s.component),
                             })
                 result = _serialize_drawer(drawer, compartments_data)
                 drawers_found[drawer.id] = result

@@ -42,9 +42,18 @@
                         <a href="/components/{{ s.component.id }}" class="text-decoration-none">{{ s.component.name }}</a>{% if not loop.last %}, {% endif %}
                         {% else %}–{% endfor %}
                     </td>
-                    <td class="text-muted small">
+                    <td class="small">
                         {% for s in comp.stock %}
-                        {{ (s.component.description or '') | truncate(60, True, '…') }}
+                        {% set c = s.component %}
+                        {% if c.description %}
+                          {{ c.description | truncate(60, True, '…') }}
+                        {% else %}
+                          {% set sp = c.specs or {} %}
+                          {% set parts = [sp.get('type',''), sp.get('material',''), sp.get('technology',''),
+                             ('Vceo ' ~ sp.get('Vceo','')) if sp.get('Vceo') else '',
+                             sp.get('Vout',''), sp.get('Vcc',''), sp.get('package','')] | select | list %}
+                          {{ parts | join(', ') | truncate(60, True, '…') }}
+                        {% endif %}
                         {% endfor %}
                     </td>
                     <td class="text-end">

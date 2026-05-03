@@ -443,7 +443,7 @@ function renderDrawerCard(d) {
         data-component-id="${c.component_id}" data-detail="${detailId}">
       <td class="font-monospace fw-semibold py-1">${c.label}</td>
       <td class="py-1">${c.component_name}</td>
-      <td class="py-1 text-secondary small">${c.description || ''}</td>
+      <td class="py-1 small">${c.description || ''}</td>
     </tr>`).join('');
 
   const tableHtml = rows
