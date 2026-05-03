@@ -28,8 +28,8 @@
             <thead class="table-light">
                 <tr>
                     <th>Fack</th>
-                    <th>Innehåll</th>
-                    <th>Lager</th>
+                    <th>Komponent</th>
+                    <th>Beskrivning</th>
                     <th class="text-end">Åtgärder</th>
                 </tr>
             </thead>
@@ -42,9 +42,9 @@
                         <a href="/components/{{ s.component.id }}" class="text-decoration-none">{{ s.component.name }}</a>{% if not loop.last %}, {% endif %}
                         {% else %}–{% endfor %}
                     </td>
-                    <td>
+                    <td class="text-muted small">
                         {% for s in comp.stock %}
-                        <span class="badge bg-success bg-opacity-75">{{ s.quantity }} {{ s.unit }}</span>
+                        {{ (s.component.description or '') | truncate(60, True, '…') }}
                         {% endfor %}
                     </td>
                     <td class="text-end">

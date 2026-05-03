@@ -490,7 +490,10 @@ async function _handleDrawerRowClick(e) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const comp = await resp.json();
     detailEl.innerHTML = `<div class="row g-3">${await renderCard(comp)}</div>`;
-    detailEl.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    // Scroll so the bottom of the card (rounded corners) is visible
+    requestAnimationFrame(() => {
+      detailEl.scrollIntoView({behavior: 'smooth', block: 'end'});
+    });
   } catch (err) {
     detailEl.innerHTML = `<p class="text-danger small">Kunde inte ladda: ${err.message}</p>`;
   }
