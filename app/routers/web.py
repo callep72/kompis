@@ -106,10 +106,22 @@ def _component_symbol(comp) -> tuple[str | None, str | None]:
     svg = _transistor_svg(comp)
     if svg:
         return svg, None
+    dar_svg, dar_label = _darlington_array(comp)
+    if dar_svg:
+        return dar_svg, dar_label
     name, label = _logic_svg(comp)
     if name:
         return _load_symbol_svg(name), label
     return None, None
+
+
+def _darlington_array(comp) -> tuple[str | None, str | None]:
+    tags = " ".join(t.lower() for t in (comp.tags or []))
+    if "darlington" not in tags or "array" not in tags:
+        return None, None
+    count = (comp.specs or {}).get("channels")
+    label = f"x{count}" if count else None
+    return _load_symbol_svg("darlington"), label
 
 
 def _transistor_svg(comp) -> str | None:

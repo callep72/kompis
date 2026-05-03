@@ -255,8 +255,14 @@ function _componentSymbol(c) {
     return null;
   }
 
-  // Logic gates (no category restriction – rely on keywords + skip list)
+  // Darlington arrays (ULN2003, ULN2803 etc.) – category-independent
   const text = [c.name, ...(c.tags || [])].join(' ').toLowerCase();
+  if (text.includes('darlington') && text.includes('array')) {
+    const count = (c.specs || {}).channels;
+    return {name: 'darlington', label: count ? `x${count}` : null};
+  }
+
+  // Logic gates (no category restriction – rely on keywords + skip list)
   if (_SKIP.test(text)) return null;
 
   let gate = null;
