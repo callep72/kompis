@@ -224,6 +224,16 @@ def _serialize_drawer(drawer: Drawer, compartments_data: list[dict]) -> dict:
     }
 
 
+from fastapi import HTTPException
+
+@router.get("/api/components/{component_id}/card")
+def get_component_card(component_id: int, db: Session = Depends(get_db)):
+    comp = _get_component_with_files(db, component_id)
+    if not comp:
+        raise HTTPException(status_code=404, detail="Komponent hittades inte")
+    return _serialize(comp)
+
+
 @router.post("/api/ask", response_model=AskResponse)
 def ask(body: AskRequest, db: Session = Depends(get_db)):
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
@@ -302,9 +312,6 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
                                 "quantity": s.quantity,
                                 "unit": s.unit,
                             })
-                            comp_full = _get_component_with_files(db, s.component.id)
-                            if comp_full:
-                                components_found[comp_full.id] = _serialize(comp_full)
                 result = _serialize_drawer(drawer, compartments_data)
                 drawers_found[drawer.id] = result
                 return result
