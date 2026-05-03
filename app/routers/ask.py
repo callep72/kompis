@@ -29,7 +29,9 @@ SYSTEM_PROMPT = (
     "Platsfrågor:\n"
     "- För frågor om lådor (t.ex. 'vad finns i L21?' eller 'visa L21') → använd search_by_location med drawer='L21'.\n"
     "- För frågor om specifika fack (t.ex. 'vad är i F0128?') → använd search_by_location med compartment='F0128'.\n"
-    "- Presentera lådinnehåll som en tabell: Fack | Komponent | Antal."
+    "- Vid lådresultat: skriv ENBART en kort prosasammanfattning (2–4 meningar) om innehållet – "
+    "  INGEN Markdown-tabell, INGA punktlistor med komponentnamn. "
+    "  GUI:t visar automatiskt en klickbar tabell med alla fack."
 )
 
 TOOLS = [

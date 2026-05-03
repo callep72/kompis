@@ -447,14 +447,12 @@ function renderDrawerCard(d) {
     </tr>`).join('');
 
   const tableHtml = rows
-    ? `<div style="max-height:360px;overflow-y:auto">
-        <table class="table table-sm table-hover mb-0">
-          <thead class="table-light sticky-top">
-            <tr><th>Fack</th><th>Komponent</th><th>Antal</th></tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-       </div>`
+    ? `<table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr><th>Fack</th><th>Komponent</th><th>Antal</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+       </table>`
     : '<p class="text-secondary small mb-0">Inga komponenter registrerade.</p>';
 
   return `
