@@ -132,22 +132,31 @@ DATASHEETS = [
     ("MOS 6561 (VIC)", "https://archive.6502.org/datasheets/mos_6560_6561_vic.pdf", "MOS6561_VIC.pdf"),
 
     # --- Transistorer L05 nya (ON Semiconductor / ST) ---
-    ("MJ2955",    "https://www.onsemi.com/download/data-sheet/pdf/mj2955-d.pdf",    "MJ2955.pdf"),
-    ("MJ15003",   "https://www.onsemi.com/pdf/datasheet/mj15003-d.pdf",             "MJ15003.pdf"),
-    ("MJ15004",   "https://www.onsemi.com/download/data-sheet/pdf/mj15004-d.pdf",   "MJ15004.pdf"),
-    ("MJ3001",    "https://www.onsemi.com/download/data-sheet/pdf/mj3001-d.pdf",    "MJ3001.pdf"),
-    ("MJ4030",    "https://www.onsemi.com/download/data-sheet/pdf/mj4032-d.pdf",    "MJ4030.pdf"),
-    ("2N3773",    "https://www.onsemi.com/pdf/datasheet/2n3773-d.pdf",              "2N3773.pdf"),
-    ("2N3772",    "https://www.onsemi.com/download/data-sheet/pdf/2n3772-d.pdf",    "2N3772.pdf"),
+    # MJ2955/2N3055 – combined ON Semi datasheet
+    ("MJ2955",    "https://www.onsemi.com/download/data-sheet/pdf/2n3055-d.pdf",    "2N3055_MJ2955.pdf"),
+    # MJ15003/MJ15004 – same complementary pair document
+    ("MJ15003",   "https://www.onsemi.com/pub/Collateral/MJ15003-D.PDF",            "MJ15003_15004.pdf"),
+    ("MJ15004",   "https://www.onsemi.com/pub/Collateral/MJ15003-D.PDF",            "MJ15003_15004.pdf"),
+    # MJ3001 – ON Semi covers MJ2501/MJ3001 pair
+    ("MJ3001",    "https://www.onsemi.com/download/data-sheet/pdf/mj2501-d.pdf",    "MJ2501_MJ3001.pdf"),
+    # MJ4030 – Motorola-lineage Digitron PDF
+    ("MJ4030",    "https://digitroncorp.com/Digitron/media/Files/Datasheets/MJ4030-MJ4032,-MJ4033-MJ4035.pdf", "MJ4030.pdf"),
+    ("2N3773",    "https://www.onsemi.com/download/data-sheet/pdf/2n3773-d.pdf",    "2N3773.pdf"),
+    # 2N3772 – ON Semi covers 2N3771/2N3772 pair
+    ("2N3772",    "https://www.onsemi.com/download/data-sheet/pdf/2n3771-d.pdf",    "2N3771_72.pdf"),
     ("2N3054",    "https://www.onsemi.com/download/data-sheet/pdf/2n3054-d.pdf",    "2N3054.pdf"),
-    ("2N5886",    "https://www.onsemi.com/download/data-sheet/pdf/2n5886-d.pdf",    "2N5886.pdf"),
-    ("2N3741",    "https://www.onsemi.com/download/data-sheet/pdf/2n3741-d.pdf",    "2N3741.pdf"),
-    ("2N2907A",   "https://www.onsemi.com/pdf/datasheet/p2n2907a-d.pdf",            "2N2907A.pdf"),
-    ("TIP33",     "https://www.onsemi.com/download/data-sheet/pdf/tip33a-d.pdf",    "TIP33A.pdf"),
-    ("TIP35C",    "https://www.onsemi.com/download/data-sheet/pdf/tip35a-d.pdf",    "TIP35_36.pdf"),
-    ("TIP36C",    "https://www.onsemi.com/download/data-sheet/pdf/tip35a-d.pdf",    "TIP35_36.pdf"),
+    # 2N5886 – ON Semi covers 2N5883/84/85/86 family
+    ("2N5886",    "https://www.onsemi.com/download/data-sheet/pdf/2n5883-d.pdf",    "2N5883_86.pdf"),
+    ("2N3741",    "https://www.mouser.com/datasheet/2/68/2n3740-29313.pdf",         "2N3741.pdf"),
+    ("2N2907A",   "https://www.onsemi.com/download/data-sheet/pdf/2n2907a-d.pdf",   "2N2907A.pdf"),
+    # TIP33 – ON Semi TIP33C document covers whole series
+    ("TIP33",     "https://www.onsemi.com/pdf/datasheet/tip33c-d.pdf",              "TIP33C.pdf"),
+    # TIP35C/TIP36C – ST complementary pair document
+    ("TIP35C",    "https://www.st.com/resource/en/datasheet/tip35c.pdf",            "TIP35_36C.pdf"),
+    ("TIP36C",    "https://www.st.com/resource/en/datasheet/tip35c.pdf",            "TIP35_36C.pdf"),
     ("TIP140",    "https://www.onsemi.com/pdf/datasheet/tip140-d.pdf",              "TIP140.pdf"),
-    ("BC141-10",  "https://www.onsemi.com/pdf/datasheet/bc141-d.pdf",              "BC141.pdf"),
+    # BC141 – ST datasheet covers BC141/BC141-16
+    ("BC141-10",  "https://www.st.com/resource/en/datasheet/cd00003226.pdf",        "BC141.pdf"),
     ("MC1455G",   "https://www.ti.com/lit/ds/symlink/ne555.pdf",                    "NE555.pdf"),
 
     # --- Spänningsregulatorer ---
