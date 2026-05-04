@@ -173,7 +173,7 @@
   <!-- Spinner -->
   <div id="status" class="d-none text-secondary my-3 d-flex align-items-center gap-2">
     <div class="spinner-border spinner-border-sm"></div>
-    <span>Frågar Claude…</span>
+    <span>Frågar AI…</span>
   </div>
 
   <!-- Felmeddelande -->
@@ -379,7 +379,7 @@ async function _doSearch(question) {
     const cardsId = `cards-${exId}`;
     const tablesId = `tables-${exId}`;
     const tokenHtml = data.usage
-      ? `<div class="text-secondary small text-end mt-2">Tokens: ${fmt(data.usage.input_tokens)} in / ${fmt(data.usage.output_tokens)} ut</div>`
+      ? `<div class="text-secondary small text-end mt-2">${data.model ? data.model + ' &nbsp;·&nbsp; ' : ''}Tokens: ${fmt(data.usage.input_tokens)} in / ${fmt(data.usage.output_tokens)} ut</div>`
       : '';
 
     let proseHtml = '', tableBlockHtml = '';

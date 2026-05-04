@@ -105,6 +105,8 @@ class AskResponse(BaseModel):
     components: list[dict]
     drawers: list[dict]
     usage: TokenUsage
+    provider: str
+    model: str
 
 
 def _serialize(comp: Component) -> dict:
@@ -445,14 +447,18 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
     provider = settings_service.get("ai_provider", "anthropic")
     if provider == "openai":
         answer, in_tok, out_tok = _run_openai(messages, call_tool)
+        model_used = settings_service.get("openai_model", "gpt-4o")
     else:
         answer, in_tok, out_tok = _run_anthropic(client, messages, call_tool)
+        model_used = settings_service.get("anthropic_model", "claude-haiku-4-5-20251001")
 
     return AskResponse(
         answer=answer,
         components=list(components_found.values()),
         drawers=list(drawers_found.values()),
         usage=TokenUsage(input_tokens=in_tok, output_tokens=out_tok),
+        provider=provider,
+        model=model_used,
     )
 
 
