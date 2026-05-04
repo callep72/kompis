@@ -61,8 +61,8 @@
                         {% for s in comp.stock %}
                         {% set ds = s.component.files | selectattr("file_type", "eq", "datasheet") | list %}
                         {% if ds %}
-                        <a href="/files/{{ ds[0].filepath }}" target="_blank" class="text-danger" title="Datablad">
-                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <a href="/files/{{ ds[0].filepath }}" target="_blank" class="text-success" title="Datablad finns">
+                            <i class="bi bi-check-lg"></i>
                         </a>
                         {% endif %}
                         {% endfor %}

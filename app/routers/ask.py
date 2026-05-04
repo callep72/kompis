@@ -25,7 +25,7 @@ SYSTEM_PROMPT = (
     "  Välj kolumner relevanta för frågan (t.ex. Modell | Typ | Vceo | Ic max | Paket | Lagerplats). "
     "  Avsluta med kommentarer om urval, datablad och rekommendationer.\n"
     "- Vid 1–2 träffar: beskriv komponenterna direkt utan tabell.\n"
-    "- Nämn alltid om en komponent har datablad tillgängligt.\n\n"
+    "- I tabellen: skriv ✓ i databladskolumnen om datablad finns, lämna annars cellen tom (skriv inte ✗ eller –).\n\n"
     "Platsfrågor:\n"
     "- För frågor om lådor (t.ex. 'vad finns i L21?' eller 'visa L21') → använd search_by_location med drawer='L21'.\n"
     "- För frågor om specifika fack (t.ex. 'vad är i F0128?') → använd search_by_location med compartment='F0128'.\n"

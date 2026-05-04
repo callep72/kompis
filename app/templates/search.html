@@ -528,7 +528,10 @@ function formatAnswer(text) {
     const line = raw.trim();
     if (/^\|/.test(line)) {
       if (/^[\|\s\-:]+$/.test(line)) continue; // separator row
-      tableRows.push(line.split('|').slice(1, -1).map(c => c.trim()));
+      tableRows.push(line.split('|').slice(1, -1).map(c => {
+        const v = c.trim();
+        return /^[✗✘×\-–—]+$/.test(v) ? '' : v;
+      }));
     } else {
       flushTable();
       if (/^##\s+/.test(line)) {
@@ -661,8 +664,8 @@ function renderDrawerCard(d) {
   const rows = (d.compartments || []).map(c => {
     const dsIcon = c.datasheet_path
       ? `<a href="/files/${c.datasheet_path}" target="_blank" onclick="event.stopPropagation()"
-            class="text-danger" title="Datablad">
-           <i class="bi bi-file-earmark-pdf-fill"></i>
+            class="text-success" title="Datablad finns">
+           <i class="bi bi-check-lg"></i>
          </a>`
       : '';
     return `
