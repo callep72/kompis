@@ -374,13 +374,22 @@ async function _doSearch(question) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
     const data = await resp.json();
 
-    // Build exchange block
+    // Build exchange block – split prose and tables so table sits just above cards
     const exId = `ex-${++exchangeCount}`;
     const cardsId = `cards-${exId}`;
-    const answerHtml = data.answer ? `<div class="answer-box mb-3">${formatAnswer(data.answer)}</div>` : '';
+    const tablesId = `tables-${exId}`;
     const tokenHtml = data.usage
       ? `<div class="text-secondary small text-end mt-2">Tokens: ${fmt(data.usage.input_tokens)} in / ${fmt(data.usage.output_tokens)} ut</div>`
       : '';
+
+    let proseHtml = '', tableBlockHtml = '';
+    if (data.answer) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = formatAnswer(data.answer);
+      const tableWrappers = tmp.querySelectorAll('.table-responsive');
+      tableBlockHtml = Array.from(tableWrappers).map(t => { const h = t.outerHTML; t.remove(); return h; }).join('');
+      proseHtml = tmp.innerHTML.trim();
+    }
 
     const block = document.createElement('div');
     block.className = 'chat-exchange mb-4';
@@ -392,13 +401,14 @@ async function _doSearch(question) {
           ${inlineFormat(question)}
         </div>
       </div>
-      ${answerHtml}
+      ${proseHtml ? `<div class="answer-box mb-3">${proseHtml}</div>` : ''}
+      <div id="${tablesId}">${tableBlockHtml}</div>
       <div class="row g-3" id="${cardsId}"></div>
       ${tokenHtml}`;
     exchanges.appendChild(block);
 
     const cardsEl = document.getElementById(cardsId);
-    const answerEl = block.querySelector('.answer-box');
+    const tablesEl = document.getElementById(tablesId);
 
     // Render drawers or components
     if (data.drawers && data.drawers.length > 0) {
@@ -416,7 +426,7 @@ async function _doSearch(question) {
         }
       } else {
         // Many results: table-first, render card on row click
-        if (answerEl) linkTableRows(data.components, answerEl, cardsEl, byId);
+        linkTableRows(data.components, tablesEl, cardsEl, byId);
       }
     }
 
