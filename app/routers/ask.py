@@ -7,6 +7,7 @@ from app.database import get_db
 from app.config import settings
 from app.models.models import Component, Stock, Compartment, Drawer
 from app.services import category_service
+from app.services import settings_service
 
 router = APIRouter(tags=["ask"])
 
@@ -245,7 +246,27 @@ def _serialize_drawer(drawer: Drawer, compartments_data: list[dict]) -> dict:
     }
 
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Body
+
+
+@router.get("/api/settings")
+def get_settings():
+    s = settings_service.all_settings()
+    return {
+        **s,
+        "anthropic_key_set": bool(settings.anthropic_api_key),
+        "openai_key_set": bool(settings.openai_api_key),
+    }
+
+
+@router.post("/api/settings")
+def update_settings(data: dict = Body(...)):
+    allowed = {"ai_provider", "openai_model", "anthropic_model"}
+    for k, v in data.items():
+        if k in allowed:
+            settings_service.set_value(k, v)
+    return settings_service.all_settings()
+
 
 @router.get("/api/drawers-overview")
 def drawers_overview(db: Session = Depends(get_db)):
@@ -420,23 +441,37 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
 
     messages = [{"role": h["role"], "content": h["content"]} for h in body.history]
     messages.append({"role": "user", "content": body.question})
-    total_input_tokens = 0
-    total_output_tokens = 0
 
+    provider = settings_service.get("ai_provider", "anthropic")
+    if provider == "openai":
+        answer, in_tok, out_tok = _run_openai(messages, call_tool)
+    else:
+        answer, in_tok, out_tok = _run_anthropic(client, messages, call_tool)
+
+    return AskResponse(
+        answer=answer,
+        components=list(components_found.values()),
+        drawers=list(drawers_found.values()),
+        usage=TokenUsage(input_tokens=in_tok, output_tokens=out_tok),
+    )
+
+
+def _run_anthropic(client, messages: list, call_tool) -> tuple[str, int, int]:
+    in_tok = out_tok = 0
+    response = None
     while True:
         response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=settings_service.get("anthropic_model", "claude-haiku-4-5-20251001"),
             max_tokens=2048,
             system=SYSTEM_PROMPT,
             tools=TOOLS,
             messages=messages,
         )
-        total_input_tokens += response.usage.input_tokens
-        total_output_tokens += response.usage.output_tokens
+        in_tok += response.usage.input_tokens
+        out_tok += response.usage.output_tokens
 
         if response.stop_reason == "end_turn":
             break
-
         if response.stop_reason == "tool_use":
             tool_results = []
             for block in response.content:
@@ -452,10 +487,56 @@ def ask(body: AskRequest, db: Session = Depends(get_db)):
         else:
             break
 
-    answer = next((b.text for b in response.content if hasattr(b, "text")), "")
-    return AskResponse(
-        answer=answer,
-        components=list(components_found.values()),
-        drawers=list(drawers_found.values()),
-        usage=TokenUsage(input_tokens=total_input_tokens, output_tokens=total_output_tokens),
-    )
+    answer = next((b.text for b in response.content if hasattr(b, "text")), "") if response else ""
+    return answer, in_tok, out_tok
+
+
+def _run_openai(messages: list, call_tool) -> tuple[str, int, int]:
+    from openai import OpenAI
+    oa = OpenAI(api_key=settings.openai_api_key)
+    model = settings_service.get("openai_model", "gpt-5.5")
+    in_tok = out_tok = 0
+
+    # Convert Anthropic tool format → OpenAI function format
+    oa_tools = [
+        {"type": "function", "function": {
+            "name": t["name"],
+            "description": t["description"],
+            "parameters": t["input_schema"],
+        }}
+        for t in TOOLS
+    ]
+
+    # Prepend system message
+    oa_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+
+    while True:
+        response = oa.chat.completions.create(
+            model=model,
+            max_tokens=2048,
+            tools=oa_tools,
+            messages=oa_messages,
+        )
+        in_tok += response.usage.prompt_tokens
+        out_tok += response.usage.completion_tokens
+
+        choice = response.choices[0]
+        if choice.finish_reason == "stop":
+            break
+
+        if choice.finish_reason == "tool_calls":
+            # Append assistant message with tool_calls
+            oa_messages.append(choice.message.model_dump(exclude_unset=True))
+            for tc in choice.message.tool_calls:
+                args = json.loads(tc.function.arguments)
+                result = call_tool(tc.function.name, args)
+                oa_messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result, ensure_ascii=False, default=str),
+                })
+        else:
+            break
+
+    answer = choice.message.content or ""
+    return answer, in_tok, out_tok

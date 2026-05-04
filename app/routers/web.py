@@ -1,5 +1,6 @@
 import re
 from fastapi import APIRouter, Depends, Form, Request
+from app.services import settings_service
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -24,6 +25,21 @@ def search(request: Request):
     return templates.TemplateResponse("search.html", {
         "request": request,
         "active_page": "search",
+    })
+
+
+# --- Admin settings ---
+
+@router.get("/admin/settings", response_class=HTMLResponse)
+def admin_settings(request: Request):
+    from app.config import settings as app_settings
+    ctx = {
+        **settings_service.all_settings(),
+        "anthropic_key_set": bool(app_settings.anthropic_api_key),
+        "openai_key_set": bool(app_settings.openai_api_key),
+    }
+    return templates.TemplateResponse("admin/settings.html", {
+        "request": request, "settings": ctx, "active_page": "settings",
     })
 
 

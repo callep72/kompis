@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Inställningar – KOMPIS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <h1 class="h4 mb-4"><i class="bi bi-gear"></i> Inställningar</h1>
+
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">AI-leverantör för sökning</div>
+      <div class="card-body">
+
+        <div class="mb-3">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="ai_provider"
+                   id="prov-anthropic" value="anthropic"
+                   {% if settings.ai_provider == 'anthropic' %}checked{% endif %}>
+            <label class="form-check-label" for="prov-anthropic">
+              <strong>Anthropic</strong>
+              <span class="text-secondary small ms-2">{{ settings.anthropic_model }}</span>
+              {% if settings.anthropic_key_set %}
+              <span class="badge bg-success ms-2">Nyckel konfigurerad</span>
+              {% else %}
+              <span class="badge bg-danger ms-2">Nyckel saknas</span>
+              {% endif %}
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="ai_provider"
+                   id="prov-openai" value="openai"
+                   {% if settings.ai_provider == 'openai' %}checked{% endif %}>
+            <label class="form-check-label" for="prov-openai">
+              <strong>OpenAI</strong>
+              <span class="text-secondary small ms-2">{{ settings.openai_model }}</span>
+              {% if settings.openai_key_set %}
+              <span class="badge bg-success ms-2">Nyckel konfigurerad</span>
+              {% else %}
+              <span class="badge bg-danger ms-2">Nyckel saknas</span>
+              {% endif %}
+            </label>
+          </div>
+        </div>
+
+        <button id="save-btn" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>Spara
+        </button>
+        <span id="save-msg" class="ms-3 small text-success d-none">Sparat!</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const provider = document.querySelector('input[name="ai_provider"]:checked')?.value;
+  if (!provider) return;
+  const resp = await fetch('/api/settings', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ai_provider: provider}),
+  });
+  if (resp.ok) {
+    const msg = document.getElementById('save-msg');
+    msg.classList.remove('d-none');
+    setTimeout(() => msg.classList.add('d-none'), 2000);
+  }
+});
+</script>
+{% endblock %}
