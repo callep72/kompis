@@ -492,12 +492,17 @@ def _run_anthropic(client, messages: list, call_tool) -> tuple[str, int, int]:
 
 
 def _run_openai(messages: list, call_tool) -> tuple[str, int, int]:
-    from openai import OpenAI
+    try:
+        from openai import OpenAI
+    except ImportError:
+        raise HTTPException(status_code=500, detail="openai-paketet saknas. Kör: docker compose up -d --build")
+
+    if not settings.openai_api_key:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY saknas i konfigurationen")
     oa = OpenAI(api_key=settings.openai_api_key)
-    model = settings_service.get("openai_model", "gpt-5.5")
+    model = settings_service.get("openai_model", "gpt-4o")
     in_tok = out_tok = 0
 
-    # Convert Anthropic tool format → OpenAI function format
     oa_tools = [
         {"type": "function", "function": {
             "name": t["name"],
@@ -507,36 +512,52 @@ def _run_openai(messages: list, call_tool) -> tuple[str, int, int]:
         for t in TOOLS
     ]
 
-    # Prepend system message
-    oa_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+    oa_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + list(messages)
+    choice = None
 
     while True:
-        response = oa.chat.completions.create(
-            model=model,
-            max_tokens=2048,
-            tools=oa_tools,
-            messages=oa_messages,
-        )
+        try:
+            response = oa.chat.completions.create(
+                model=model,
+                max_tokens=2048,
+                tools=oa_tools,
+                messages=oa_messages,
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"OpenAI-fel: {e}")
         in_tok += response.usage.prompt_tokens
         out_tok += response.usage.completion_tokens
-
         choice = response.choices[0]
-        if choice.finish_reason == "stop":
+
+        if choice.finish_reason != "tool_calls":
             break
 
-        if choice.finish_reason == "tool_calls":
-            # Append assistant message with tool_calls
-            oa_messages.append(choice.message.model_dump(exclude_unset=True))
-            for tc in choice.message.tool_calls:
-                args = json.loads(tc.function.arguments)
-                result = call_tool(tc.function.name, args)
-                oa_messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": json.dumps(result, ensure_ascii=False, default=str),
-                })
-        else:
-            break
+        # Append assistant message with tool calls (explicit dict, no model_dump)
+        tool_calls_data = [
+            {
+                "id": tc.id,
+                "type": "function",
+                "function": {
+                    "name": tc.function.name,
+                    "arguments": tc.function.arguments,
+                },
+            }
+            for tc in choice.message.tool_calls
+        ]
+        oa_messages.append({
+            "role": "assistant",
+            "content": choice.message.content,
+            "tool_calls": tool_calls_data,
+        })
 
-    answer = choice.message.content or ""
+        for tc in choice.message.tool_calls:
+            args = json.loads(tc.function.arguments)
+            result = call_tool(tc.function.name, args)
+            oa_messages.append({
+                "role": "tool",
+                "tool_call_id": tc.id,
+                "content": json.dumps(result, ensure_ascii=False, default=str),
+            })
+
+    answer = (choice.message.content or "") if choice else ""
     return answer, in_tok, out_tok

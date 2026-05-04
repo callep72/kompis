@@ -6,7 +6,7 @@ _SETTINGS_FILE = os.path.join(app_settings.file_storage_path, "_app_settings.jso
 
 _data: dict = {
     "ai_provider": "anthropic",  # "anthropic" | "openai"
-    "openai_model": "gpt-5.5",
+    "openai_model": "gpt-4o",
     "anthropic_model": "claude-haiku-4-5-20251001",
 }
 
