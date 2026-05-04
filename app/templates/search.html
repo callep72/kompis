@@ -407,15 +407,17 @@ async function _doSearch(question) {
       }
     } else if (data.components && data.components.length > 0) {
       const byId = {};
-      data.components.forEach(c => byId[c.id] = c);
-      const mentioned = data.answer
-        ? data.components.filter(c => data.answer.includes(c.name) || (c.part_number && data.answer.includes(c.part_number))).map(c => c.id)
-        : [];
-      const ordered = mentioned.length > 0 ? mentioned.map(id => byId[id]).filter(Boolean) : data.components;
-      for (const c of ordered) {
-        cardsEl.insertAdjacentHTML('beforeend', await renderCard(c));
+      data.components.forEach(c => { byId[c.id] = c; });
+
+      if (data.components.length <= 2) {
+        // Few results: show cards directly
+        for (const c of data.components) {
+          cardsEl.insertAdjacentHTML('beforeend', await renderCard(c));
+        }
+      } else {
+        // Many results: table-first, render card on row click
+        if (answerEl) linkTableRows(data.components, answerEl, cardsEl, byId);
       }
-      if (answerEl) linkTableRows(data.components, answerEl, cardsEl);
     }
 
     // Update history
@@ -536,7 +538,7 @@ function formatAnswer(text) {
   return out.join('');
 }
 
-function linkTableRows(components, answerContainer, cardsContainer) {
+function linkTableRows(components, answerContainer, cardsContainer, componentLookupById) {
   if (!answerContainer) return;
   const lookup = {};
   components.forEach(c => {
@@ -551,8 +553,27 @@ function linkTableRows(components, answerContainer, cardsContainer) {
       const t = td.textContent.trim().toLowerCase();
       if (lookup[t]) matchId = lookup[t];
     });
-    if (matchId) {
-      row.classList.add('row-linked');
+    if (!matchId) return;
+
+    row.classList.add('row-linked');
+
+    if (componentLookupById) {
+      // On-demand mode: render card in cardsContainer on click
+      row.title = 'Visa komponentkort';
+      row.addEventListener('click', async () => {
+        const tbody = row.closest('tbody');
+        tbody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+        row.classList.add('table-active');
+
+        const comp = componentLookupById[matchId];
+        if (!comp) return;
+        cardsContainer.innerHTML =
+          '<div class="text-secondary small py-2"><span class="spinner-border spinner-border-sm me-2"></span>Laddar...</div>';
+        cardsContainer.innerHTML = `<div class="row g-3">${await renderCard(comp)}</div>`;
+        requestAnimationFrame(() => cardsContainer.scrollIntoView({behavior: 'smooth', block: 'end'}));
+      });
+    } else {
+      // Scroll-to mode: card already rendered, just scroll + flash
       row.title = 'Hoppa till komponentkortet';
       row.addEventListener('click', () => {
         const target = cardsContainer
