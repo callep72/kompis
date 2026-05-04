@@ -519,7 +519,7 @@ def _run_openai(messages: list, call_tool) -> tuple[str, int, int]:
         try:
             response = oa.chat.completions.create(
                 model=model,
-                max_tokens=2048,
+                max_completion_tokens=2048,
                 tools=oa_tools,
                 messages=oa_messages,
             )
